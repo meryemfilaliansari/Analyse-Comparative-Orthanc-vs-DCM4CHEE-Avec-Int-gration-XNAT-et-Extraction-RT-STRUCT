@@ -1,10 +1,10 @@
 site_name: PACS Multi-Systèmes - Documentation Complète
 site_description: Plateforme professionnelle de comparaison DCM4CHEE vs Orthanc avec RT-STRUCT, XNAT et OHIF
 site_author: Meryem Filali Ansari
-site_url: https://analyse-comparative-orthanc-vs-dcm4chee.readthedocs.io
+site_url: https://orthanc-vs-dcm4chee-avec-xnat-et-extraction-rt-struct.readthedocs.io
 
-repo_name: meryemfilaliansari/Analyse-Comparative-Orthanc-vs-DCM4CHEE
-repo_url: https://github.com/meryemfilaliansari/Analyse-Comparative-Orthanc-vs-DCM4CHEE-Avec-Int-gration-XNAT-et-Extraction-RT-STRUCT
+repo_name: meryemfilaliansari/Orthanc-vs-DCM4CHEE-Avec-XNAT-et-Extraction-RT-STRUCT
+repo_url: https://github.com/meryemfilaliansari/Orthanc-vs-DCM4CHEE-Avec-XNAT-et-Extraction-RT-STRUCT
 
 theme:
   name: material
@@ -86,40 +86,8 @@ nav:
       - Premier Démarrage: quickstart/first-run.md
   - Architecture:
       - Vue d'Ensemble: architecture/overview.md
-      - Microservices: architecture/microservices.md
-      - Base de Données: architecture/database.md
-      - Réseau Docker: architecture/networking.md
+      - Microservices Détaillés: architecture/microservices.md
   - Guides Utilisateur:
-      - Dashboard: guides/dashboard.md
-      - Upload DICOM: guides/upload-dicom.md
-      - Visualisation OHIF: guides/ohif-viewer.md
-      - Anonymisation XNAT: guides/xnat-anonymization.md
-      - Comparaison PACS: guides/pacs-comparison.md
-  - Workflow RT-STRUCT:
-      - Introduction: rt-struct/introduction.md
-      - Pipeline Automatisé: rt-struct/pipeline.md
-      - Extraction Contours: rt-struct/extraction.md
-      - Segmentation 3D: rt-struct/segmentation.md
-      - Export Formats: rt-struct/export.md
-  - API Documentation:
-      - Backend FastAPI: api/backend.md
-      - Endpoints REST: api/endpoints.md
-      - RT Services: api/rt-services.md
-      - Authentification: api/authentication.md
-  - Déploiement:
-      - Production: deployment/production.md
-      - HTTPS/SSL: deployment/https.md
-      - Monitoring: deployment/monitoring.md
-      - Backup & Restauration: deployment/backup.md
-  - Performance:
-      - Benchmarks: performance/benchmarks.md
-      - Optimisations: performance/optimizations.md
-      - Scaling: performance/scaling.md
+      - Tableau de Bord: guides/dashboard.md
   - Troubleshooting:
       - Problèmes Courants: troubleshooting/common-issues.md
-      - Logs & Debug: troubleshooting/logs.md
-      - FAQ: troubleshooting/faq.md
-  - Contribution:
-      - Guide: contributing/guide.md
-      - Standards Code: contributing/standards.md
-      - Tests: contributing/tests.md
