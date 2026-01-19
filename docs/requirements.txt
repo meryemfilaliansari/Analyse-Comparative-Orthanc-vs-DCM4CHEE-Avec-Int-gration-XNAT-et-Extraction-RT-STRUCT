@@ -1,0 +1,12 @@
+# Python dependencies for ReadTheDocs build
+# Documentation: https://www.mkdocs.org/
+
+# MkDocs core
+mkdocs>=1.5.3
+
+# Material theme
+mkdocs-material>=9.5.3
+
+# Plugins
+mkdocs-minify-plugin>=0.7.1
+pymdown-extensions>=10.7
