@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Platform PACS - DCM4CHEE vs Orthanc</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #667eea;
+            --secondary: #764ba2;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --dark: #1f2937;
+            --light: #f9fafb;
+            --border: #e5e7eb;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            color: var(--dark);
+            font-size: 32px;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .pacs-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .pacs-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .pacs-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .pacs-title {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .pacs-logo {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .dcm4chee-logo {
+            background: linear-gradient(135deg, #f59e0b, #ef4444);
+        }
+
+        .orthanc-logo {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        }
+
+        .pacs-title h2 {
+            color: var(--dark);
+            font-size: 22px;
+        }
+
+        .pacs-title p {
+            color: #9ca3af;
+            font-size: 13px;
+        }
+
+        .status-badge {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-online {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-offline {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-box {
+            background: var(--light);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .upload-section {
+            background: var(--light);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .upload-area {
+            border: 3px dashed var(--primary);
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .upload-area:hover {
+            background: #eef2ff;
+            border-color: var(--secondary);
+        }
+
+        .upload-area.dragover {
+            background: #dbeafe;
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-outline {
+            background: white;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-outline:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .viewer-section {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .viewer-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 15px;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            border: none;
+            background: none;
+            color: #6b7280;
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .viewer-frame {
+            width: 100%;
+            height: 600px;
+            border: none;
+            border-radius: 12px;
+            background: var(--light);
+        }
+
+        .comparison-mode {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .comparison-mode .viewer-frame {
+            height: 500px;
+        }
+
+        .file-list {
+            max-height: 200px;
+            overflow-y: auto;
+            margin: 15px 0;
+        }
+
+        .file-item {
+            background: white;
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid var(--border);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 15px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .alert {
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-top: 15px;
+            display: none;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alert.success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .alert.error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .comparison-mode {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🏥 Plateforme PACS Médicale</h1>
+            <p>Gestion et visualisation d'images DICOM avec DCM4CHEE et Orthanc</p>
+        </div>
+
+        <!-- PACS Cards -->
+        <div class="main-grid">
+            <!-- DCM4CHEE Card -->
+            <div class="pacs-card">
+                <div class="pacs-header">
+                    <div class="pacs-title">
+                        <div class="pacs-logo dcm4chee-logo">D</div>
+                        <div>
+                            <h2>DCM4CHEE</h2>
+                            <p>Archive PACS Principal</p>
+                        </div>
+                    </div>
+                    <span class="status-badge status-online" id="dcm4chee-status">
+                        <span>●</span> En ligne
+                    </span>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-value" id="dcm4chee-studies">-</div>
+                        <div class="stat-label">Études</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="dcm4chee-series">-</div>
+                        <div class="stat-label">Séries</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="dcm4chee-instances">-</div>
+                        <div class="stat-label">Images</div>
+                    </div>
+                </div>
+
+                <div class="upload-section">
+                    <h3 style="margin-bottom: 15px; color: var(--dark);">📤 Upload DICOM</h3>
+                    <div class="upload-area" id="upload-dcm4chee">
+                        <div class="upload-icon">📁</div>
+                        <div style="color: var(--primary); font-weight: 600; margin-bottom: 5px;">
+                            Glissez vos fichiers DICOM ici
+                        </div>
+                        <div style="color: #9ca3af; font-size: 13px;">
+                            ou cliquez pour parcourir
+                        </div>
+                        <input type="file" id="file-dcm4chee" multiple accept=".dcm,.DCM" style="display: none;">
+                    </div>
+                    <div class="file-list" id="files-dcm4chee"></div>
+                    <button class="btn btn-primary" id="upload-btn-dcm4chee" disabled style="width: 100%; margin-top: 15px;">
+                        📤 Envoyer vers DCM4CHEE
+                    </button>
+                    <div class="progress-bar" id="progress-dcm4chee" style="display: none;">
+                        <div class="progress-fill" id="progress-fill-dcm4chee"></div>
+                    </div>
+                    <div class="alert" id="alert-dcm4chee"></div>
+                </div>
+
+                <div class="actions">
+                    <button class="btn btn-primary" onclick="openViewer('dcm4chee')">
+                        👁️ Ouvrir Viewer
+                    </button>
+                    <button class="btn btn-outline" onclick="openInterface('dcm4chee')">
+                        🔧 Interface Admin
+                    </button>
+                </div>
+            </div>
+
+            <!-- Orthanc Card -->
+            <div class="pacs-card">
+                <div class="pacs-header">
+                    <div class="pacs-title">
+                        <div class="pacs-logo orthanc-logo">O</div>
+                        <div>
+                            <h2>Orthanc</h2>
+                            <p>Archive PACS Anonymisé</p>
+                        </div>
+                    </div>
+                    <span class="status-badge status-online" id="orthanc-status">
+                        <span>●</span> En ligne
+                    </span>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-value" id="orthanc-studies">-</div>
+                        <div class="stat-label">Études</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="orthanc-series">-</div>
+                        <div class="stat-label">Séries</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="orthanc-instances">-</div>
+                        <div class="stat-label">Images</div>
+                    </div>
+                </div>
+
+                <div class="upload-section">
+                    <h3 style="margin-bottom: 15px; color: var(--dark);">📤 Upload DICOM</h3>
+                    <div class="upload-area" id="upload-orthanc">
+                        <div class="upload-icon">📁</div>
+                        <div style="color: var(--primary); font-weight: 600; margin-bottom: 5px;">
+                            Glissez vos fichiers DICOM ici
+                        </div>
+                        <div style="color: #9ca3af; font-size: 13px;">
+                            ou cliquez pour parcourir
+                        </div>
+                        <input type="file" id="file-orthanc" multiple accept=".dcm,.DCM" style="display: none;">
+                    </div>
+                    <div class="file-list" id="files-orthanc"></div>
+                    <button class="btn btn-primary" id="upload-btn-orthanc" disabled style="width: 100%; margin-top: 15px;">
+                        📤 Envoyer vers Orthanc
+                    </button>
+                    <div class="progress-bar" id="progress-orthanc" style="display: none;">
+                        <div class="progress-fill" id="progress-fill-orthanc"></div>
+                    </div>
+                    <div class="alert" id="alert-orthanc"></div>
+                </div>
+
+                <div class="actions">
+                    <button class="btn btn-primary" onclick="openViewer('orthanc')">
+                        👁️ Ouvrir Viewer
+                    </button>
+                    <button class="btn btn-outline" onclick="openInterface('orthanc')">
+                        🔧 Interface Admin
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Viewer Section -->
+        <div class="viewer-section">
+            <div class="viewer-tabs">
+                <button class="tab active" onclick="switchMode('single')">📊 Vue Simple</button>
+                <button class="tab" onclick="switchMode('comparison')">⚖️ Comparaison</button>
+            </div>
+
+            <div id="single-view">
+                <iframe class="viewer-frame" id="main-viewer" src="about:blank"></iframe>
+            </div>
+
+            <div id="comparison-view" class="comparison-mode" style="display: none;">
+                <div>
+                    <h3 style="margin-bottom: 10px; color: var(--dark);">DCM4CHEE Viewer</h3>
+                    <iframe class="viewer-frame" id="dcm4chee-viewer" src="about:blank"></iframe>
+                </div>
+                <div>
+                    <h3 style="margin-bottom: 10px; color: var(--dark);">Orthanc Viewer</h3>
+                    <iframe class="viewer-frame" id="orthanc-viewer" src="about:blank"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const DCM4CHEE_URL = 'http://localhost:8080/dcm4chee-arc';
+        const ORTHANC_URL = 'http://localhost:9042';
+        
+        let dcm4cheeFiles = [];
+        let orthancFiles = [];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initUpload('dcm4chee');
+            initUpload('orthanc');
+            loadStats();
+            setInterval(loadStats, 30000); // Refresh every 30s
+        });
+
+        function initUpload(pacs) {
+            const uploadArea = document.getElementById(`upload-${pacs}`);
+            const fileInput = document.getElementById(`file-${pacs}`);
+            const uploadBtn = document.getElementById(`upload-btn-${pacs}`);
+
+            uploadArea.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', (e) => handleFiles(pacs, e.target.files));
+
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('dragover');
+            });
+
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                handleFiles(pacs, e.dataTransfer.files);
+            });
+
+            uploadBtn.addEventListener('click', () => uploadFiles(pacs));
+        }
+
+        function handleFiles(pacs, files) {
+            const fileArray = Array.from(files);
+            if (pacs === 'dcm4chee') {
+                dcm4cheeFiles = [...dcm4cheeFiles, ...fileArray];
+            } else {
+                orthancFiles = [...orthancFiles, ...fileArray];
+            }
+            updateFileList(pacs);
+        }
+
+        function updateFileList(pacs) {
+            const files = pacs === 'dcm4chee' ? dcm4cheeFiles : orthancFiles;
+            const listEl = document.getElementById(`files-${pacs}`);
+            const btnEl = document.getElementById(`upload-btn-${pacs}`);
+
+            listEl.innerHTML = files.map((file, i) => `
+                <div class="file-item">
+                    <span style="flex: 1;">${file.name}</span>
+                    <span style="color: #9ca3af; font-size: 12px; margin-right: 10px;">
+                        ${formatBytes(file.size)}
+                    </span>
+                    <button onclick="removeFile('${pacs}', ${i})" 
+                            style="background: var(--danger); color: white; border: none; 
+                                   padding: 5px 10px; border-radius: 5px; cursor: pointer;">
+                        ✕
+                    </button>
+                </div>
+            `).join('');
+
+            btnEl.disabled = files.length === 0;
+        }
+
+        function removeFile(pacs, index) {
+            if (pacs === 'dcm4chee') {
+                dcm4cheeFiles.splice(index, 1);
+            } else {
+                orthancFiles.splice(index, 1);
+            }
+            updateFileList(pacs);
+        }
+
+        async function uploadFiles(pacs) {
+            const files = pacs === 'dcm4chee' ? dcm4cheeFiles : orthancFiles;
+            const progressEl = document.getElementById(`progress-${pacs}`);
+            const progressFill = document.getElementById(`progress-fill-${pacs}`);
+            const alertEl = document.getElementById(`alert-${pacs}`);
+            const btnEl = document.getElementById(`upload-btn-${pacs}`);
+
+            btnEl.disabled = true;
+            progressEl.style.display = 'block';
+            alertEl.style.display = 'none';
+
+            try {
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    const percent = Math.round(((i + 1) / files.length) * 100);
+                    progressFill.style.width = percent + '%';
+
+                    if (pacs === 'dcm4chee') {
+                        await uploadToDCM4CHEE(file);
+                    } else {
+                        await uploadToOrthanc(file);
+                    }
+                }
+
+                showAlert(pacs, `✅ ${files.length} fichier(s) uploadé(s) avec succès !`, 'success');
+                if (pacs === 'dcm4chee') dcm4cheeFiles = [];
+                else orthancFiles = [];
+                updateFileList(pacs);
+                loadStats();
+
+                setTimeout(() => {
+                    progressEl.style.display = 'none';
+                    progressFill.style.width = '0%';
+                }, 2000);
+
+            } catch (error) {
+                showAlert(pacs, `❌ Erreur: ${error.message}`, 'error');
+            } finally {
+                btnEl.disabled = files.length === 0;
+            }
+        }
+
+        async function uploadToDCM4CHEE(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const response = await fetch(`${DCM4CHEE_URL}/aets/DCM4CHEE/rs/studies`, {
+                method: 'POST',
+                body: file,
+                headers: {
+                    'Content-Type': 'application/dicom'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`Upload failed: ${response.statusText}`);
+            }
+        }
+
+        async function uploadToOrthanc(file) {
+            const response = await fetch(`${ORTHANC_URL}/instances`, {
+                method: 'POST',
+                body: file
+            });
+
+            if (!response.ok) {
+                throw new Error(`Upload failed: ${response.statusText}`);
+            }
+        }
+
+        async function loadStats() {
+            try {
+                // DCM4CHEE stats
+                const dcm4cheeStats = await fetch(`${DCM4CHEE_URL}/aets/DCM4CHEE/rs/studies?limit=0`).then(r => r.ok);
+                document.getElementById('dcm4chee-status').className = dcm4cheeStats ? 
+                    'status-badge status-online' : 'status-badge status-offline';
+
+                // Orthanc stats
+                const orthancStats = await fetch(`${ORTHANC_URL}/statistics`).then(r => r.json());
+                document.getElementById('orthanc-studies').textContent = orthancStats.CountStudies || 0;
+                document.getElementById('orthanc-series').textContent = orthancStats.CountSeries || 0;
+                document.getElementById('orthanc-instances').textContent = orthancStats.CountInstances || 0;
+                document.getElementById('orthanc-status').className = 'status-badge status-online';
+
+            } catch (error) {
+                console.error('Stats error:', error);
+            }
+        }
+
+        function showAlert(pacs, message, type) {
+            const alertEl = document.getElementById(`alert-${pacs}`);
+            alertEl.textContent = message;
+            alertEl.className = `alert ${type}`;
+            alertEl.style.display = 'flex';
+        }
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+
+        function switchMode(mode) {
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+
+            if (mode === 'single') {
+                document.getElementById('single-view').style.display = 'block';
+                document.getElementById('comparison-view').style.display = 'none';
+            } else {
+                document.getElementById('single-view').style.display = 'none';
+                document.getElementById('comparison-view').style.display = 'grid';
+                document.getElementById('dcm4chee-viewer').src = 'http://localhost:8081';
+                document.getElementById('orthanc-viewer').src = 'http://localhost:9043';
+            }
+        }
+
+        function openViewer(pacs) {
+            const url = pacs === 'dcm4chee' ? 'http://localhost:8081' : 'http://localhost:9043';
+            document.getElementById('main-viewer').src = url;
+        }
+
+        function openInterface(pacs) {
+            const url = pacs === 'dcm4chee' ? 
+                'http://localhost:8080/dcm4chee-arc/ui2' : 
+                'http://localhost:9042/app/explorer.html';
+            window.open(url, '_blank');
+        }
+        // Rafraîchissement auto des stats toutes les 5 secondes
+        loadStats();
+        setInterval(loadStats, 5000);
+    </script>
+</body>
+</html>

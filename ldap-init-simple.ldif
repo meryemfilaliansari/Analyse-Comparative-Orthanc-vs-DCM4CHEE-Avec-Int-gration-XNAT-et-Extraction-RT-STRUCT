@@ -1,0 +1,6 @@
+# Configuration minimale LDAP pour DCM4CHEE
+# Pas besoin de définir les devices - dcm4chee les créera automatiquement
+
+dn: cn=DICOM Configuration,dc=dcm4che,dc=org
+objectClass: dcmConfiguration
+cn: DICOM Configuration

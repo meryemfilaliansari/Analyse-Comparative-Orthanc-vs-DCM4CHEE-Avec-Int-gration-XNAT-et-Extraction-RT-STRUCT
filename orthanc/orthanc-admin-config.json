@@ -1,0 +1,64 @@
+{
+  "Name": "Orthanc Admin - Upload Original Data",
+  "StorageDirectory": "/var/lib/orthanc/db",
+  "IndexDirectory": "/var/lib/orthanc/db",
+  
+  "HttpPort": 8042,
+  "DicomPort": 4242,
+  "DicomAet": "ORTHANC_ADMIN",
+  
+  "RemoteAccessAllowed": true,
+  "AuthenticationEnabled": false,
+  "SslEnabled": false,
+  
+  "DicomWeb": {
+    "Enable": true,
+    "Root": "/dicom-web/",
+    "EnableWado": true,
+    "WadoRoot": "/wado",
+    "Ssl": false,
+    "QidoCaseSensitive": false
+  },
+  
+  "DicomModalities": {
+    "XNAT": {
+      "AET": "XNAT",
+      "Host": "xnat-web",
+      "Port": 8104,
+      "Manufacturer": "XNAT",
+      "AllowEcho": true,
+      "AllowFind": true,
+      "AllowStore": true,
+      "AllowGet": false,
+      "AllowMove": false
+    }
+  },
+  
+  "OrthancPeers": {
+    "xnat-peer": {
+      "Url": "http://xnat-web:8080/xapi",
+      "Username": "admin",
+      "Password": "admin"
+    }
+  },
+  
+  "LuaScripts": [
+    "/etc/orthanc/orthanc-forward-xnat.lua"
+  ],
+  
+  "StableAge": 10,
+  "JobsHistorySize": 100,
+  "SaveJobs": true,
+  
+  "HttpTimeout": 60,
+  "HttpVerbose": true,
+  
+  "Plugins": [
+    "/usr/local/share/orthanc/plugins"
+  ],
+  
+  "PostgreSQL": {
+    "EnableIndex": false,
+    "EnableStorage": false
+  }
+}

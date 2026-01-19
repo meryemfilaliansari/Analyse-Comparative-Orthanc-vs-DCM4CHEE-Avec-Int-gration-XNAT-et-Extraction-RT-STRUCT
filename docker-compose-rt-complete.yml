@@ -1,0 +1,294 @@
+version: '3.8'
+
+# ============================================================================
+# Système PACS Complet avec RT-STRUCT → DICOM-SEG
+# Orthanc Admin + Student + Services RT + OHIF + XNAT Ready
+# ============================================================================
+
+services:
+  # ==========================================================================
+  # Orthanc Admin - Serveur PACS principal avec webhook RT-STRUCT
+  # Port 8042 (Web) + 4242 (DICOM)
+  # ==========================================================================
+  orthanc-admin:
+    image: orthancteam/orthanc:latest
+    container_name: orthanc-admin
+    restart: unless-stopped
+    ports:
+      - "8042:8042"  # Interface Web + API REST
+      - "4242:4242"  # DICOM C-STORE SCP
+    environment:
+      ORTHANC__NAME: "Orthanc-Admin-RT"
+      ORTHANC__DICOM_AET: "ORTHANC_ADMIN"
+      ORTHANC__AUTHENTICATION_ENABLED: "false"
+      ORTHANC__REMOTE_ACCESS_ALLOWED: "true"
+      ORTHANC__HTTP_CORS_ENABLED: "true"
+      STONE_WEB_VIEWER_PLUGIN_ENABLED: "true"
+      DICOM_WEB_PLUGIN_ENABLED: "true"
+      OHIF_PLUGIN_ENABLED: "true"
+      ORTHANC__DICOM_WEB__ENABLE: "true"
+      ORTHANC__DICOM_WEB__ROOT: "/dicom-web/"
+      ORTHANC__DICOM_WEB__ENABLE_WADO: "true"
+      ORTHANC__DICOM_WEB__WADO_ROOT: "/dicom-web/wado"
+      ORTHANC__DICOM_WEB__QIDO_ROOT: "/dicom-web"
+      ORTHANC__DICOM_WEB__STUDIES_METADATA: "Full"
+      ORTHANC__DICOM_WEB__SERIES_METADATA: "Full"
+      ORTHANC__STABLE_AGE: "10"
+      ORTHANC__LUA_SCRIPTS: |
+        ["/etc/orthanc/orthanc-rt-webhook.lua"]
+      ORTHANC__DICOM_MODALITIES: |
+        {
+          "XNAT": ["XNAT", "xnat-web", 8104],
+          "ORTHANC_USER": ["ORTHANC_USER", "orthanc-user", 4242]
+        }
+      ORTHANC__ORTHANC_PEERS: |
+        {
+          "student": {
+            "Url": "http://orthanc-user:8042"
+          }
+        }
+    volumes:
+      - orthanc-admin-data:/var/lib/orthanc/db
+      - ./orthanc/orthanc-rt-webhook.lua:/etc/orthanc/orthanc-rt-webhook.lua:ro
+    networks:
+      - pacs-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8042/system"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # ==========================================================================
+  # Orthanc Student - Serveur PACS pour données anonymisées (Étudiants)
+  # Port 9042 (Web) + 5242 (DICOM)
+  # ==========================================================================
+  orthanc-user:
+    image: orthancteam/orthanc:latest
+    container_name: orthanc-user
+    restart: unless-stopped
+    ports:
+      - "9042:8042"  # Interface Web + API REST
+      - "5242:4242"  # DICOM C-STORE SCP
+    environment:
+      ORTHANC__NAME: "orthanc-user"
+      ORTHANC__DICOM_AET: "ORTHANC_USER"
+      ORTHANC__AUTHENTICATION_ENABLED: "false"
+      ORTHANC__REMOTE_ACCESS_ALLOWED: "true"
+      ORTHANC__HTTP_CORS_ENABLED: "true"
+      STONE_WEB_VIEWER_PLUGIN_ENABLED: "true"
+      DICOM_WEB_PLUGIN_ENABLED: "true"
+      OHIF_PLUGIN_ENABLED: "true"
+      ORTHANC__DICOM_WEB__ENABLE: "true"
+      ORTHANC__DICOM_WEB__ROOT: "/dicom-web/"
+      ORTHANC__DICOM_WEB__ENABLE_WADO: "true"
+      ORTHANC__DICOM_WEB__WADO_ROOT: "/dicom-web/wado"
+      ORTHANC__DICOM_WEB__QIDO_ROOT: "/dicom-web"
+      ORTHANC__DICOM_WEB__STUDIES_METADATA: "Full"
+      ORTHANC__DICOM_WEB__SERIES_METADATA: "Full"
+    volumes:
+      - orthanc-user-data:/var/lib/orthanc/db
+    networks:
+      - pacs-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8042/system"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # ==========================================================================
+  # OHIF Viewer - Connecté à Orthanc Student
+  # ==========================================================================
+  ohif-viewer:
+    image: ohif/app:latest
+    container_name: ohif-student
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    environment:
+      APP_CONFIG: |
+        window.config = {
+          routerBasename: '/',
+          showStudyList: true,
+          dataSources: [{
+            namespace: '@ohif/extension-default.dataSourcesModule.dicomweb',
+            sourceName: 'orthanc-user',
+            configuration: {
+              friendlyName: 'Orthanc Student',
+              name: 'orthanc-user',
+              wadoUriRoot: 'http://localhost:9042/wado',
+              qidoRoot: 'http://localhost:9042/dicom-web',
+              wadoRoot: 'http://localhost:9042/dicom-web',
+              qidoSupportsIncludeField: false,
+              imageRendering: 'wadors',
+              thumbnailRendering: 'wadors'
+            }
+          }],
+          defaultDataSourceName: 'orthanc-user'
+        };
+    networks:
+      - pacs-network
+    depends_on:
+      - orthanc-user
+
+  # ==========================================================================
+  # RT-Utils Service - Voxelisation automatique RT-STRUCT → DICOM-SEG
+  # ==========================================================================
+  rt-utils-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.rt-utils
+    container_name: rt-utils-processor
+    restart: unless-stopped
+    ports:
+      - "5001:5000"
+    environment:
+      ORTHANC_URL: http://orthanc-admin:8042
+      ORTHANC_USER: ""
+      ORTHANC_PASSWORD: ""
+      AUTO_UPLOAD: "true"
+      LOG_LEVEL: "INFO"
+    volumes:
+      - rt-utils-cache:/app/cache
+      - ./logs/rt-utils:/app/logs
+    networks:
+      - pacs-network
+    depends_on:
+      - orthanc-admin
+
+  # ==========================================================================
+  # ITK/VTK Post-Processing Service
+  # ==========================================================================
+  itk-vtk-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.itk-vtk
+    container_name: itk-vtk-processor
+    restart: unless-stopped
+    ports:
+      - "5002:5000"
+    environment:
+      ORTHANC_URL: http://orthanc-admin:8042
+      ENABLE_MORPHOLOGY: "true"
+      ENABLE_RADIOMICS: "true"
+    volumes:
+      - itk-vtk-cache:/app/cache
+      - ./logs/itk-vtk:/app/logs
+    networks:
+      - pacs-network
+    depends_on:
+      - orthanc-admin
+
+  # ==========================================================================
+  # 3D Slicer Web avec SlicerRT (OHIF pour RT viewing)
+  # ==========================================================================
+  slicer-rt:
+    image: ohif/app:v3.9.0
+    container_name: slicer-rt-web
+    restart: unless-stopped
+    ports:
+      - "3003:80"
+    environment:
+      SLICER_DICOMWEB_URL: http://orthanc-admin:8042/dicom-web
+      ENABLE_RT_EXTENSIONS: "true"
+    networks:
+      - pacs-network
+    depends_on:
+      - orthanc-admin
+
+  # ==========================================================================
+  # Webhook Orchestrator - Détecte RT-STRUCT et déclenche workflow
+  # ==========================================================================
+  rt-orchestrator:
+    build:
+      context: .
+      dockerfile: Dockerfile.orchestrator
+    container_name: rt-workflow-orchestrator
+    restart: unless-stopped
+    ports:
+      - "5003:5000"
+    environment:
+      ORTHANC_URL: http://orthanc-admin:8042
+      RT_UTILS_URL: http://rt-utils-processor:5000
+      ITK_VTK_URL: http://itk-vtk-processor:5000
+      AUTO_PROCESS: "true"
+      ENABLE_MANUAL_VALIDATION: "true"
+    volumes:
+      - orchestrator-db:/app/db
+      - ./logs/orchestrator:/app/logs
+    networks:
+      - pacs-network
+    depends_on:
+      - orthanc-admin
+      - rt-utils-service
+      - itk-vtk-service
+
+  # ==========================================================================
+  # Dashboard RT - Interface de monitoring et demo
+  # ==========================================================================
+  rt-dashboard:
+    image: nginx:alpine
+    container_name: rt-dashboard
+    restart: unless-stopped
+    ports:
+      - "8083:80"
+    volumes:
+      - ./nginx-html/rt-demo-interactive.html:/usr/share/nginx/html/index.html:ro
+      - ./nginx-html/rt-dashboard.html:/usr/share/nginx/html/docs.html:ro
+    networks:
+      - pacs-network
+
+  # ==========================================================================
+  # Nginx Portal - Portail d'accès principal
+  # ==========================================================================
+  portal-nginx:
+    image: nginx:alpine
+    container_name: pacs-portal
+    restart: unless-stopped
+    ports:
+      - "8081:80"
+    volumes:
+      - ./nginx-html/portal.html:/usr/share/nginx/html/index.html:ro
+    networks:
+      - pacs-network
+    depends_on:
+      - orthanc-admin
+      - orthanc-user
+      - ohif-viewer
+
+  # ==========================================================================
+  # RT-STRUCT Editor Pro - Application complète d'édition RT
+  # Port 5005
+  # ==========================================================================
+  rt-editor-pro:
+    build:
+      context: ./rt_editor_app
+      dockerfile: Dockerfile
+    container_name: rt-editor-pro
+    restart: unless-stopped
+    ports:
+      - "5005:5000"
+    environment:
+      ORTHANC_URL: "http://orthanc-admin:8042"
+      RT_UTILS_URL: "http://rt-utils-processor:5000"
+      ITK_VTK_URL: "http://itk-vtk-processor:5000"
+      ORCHESTRATOR_URL: "http://rt-workflow-orchestrator:5000"
+    volumes:
+      - ./rt_editor_app:/app:ro
+    networks:
+      - pacs-network
+    depends_on:
+      - orthanc-admin
+      - rt-utils-service
+      - itk-vtk-service
+      - rt-orchestrator
+
+networks:
+  pacs-network:
+    driver: bridge
+
+volumes:
+  orthanc-admin-data:
+  orthanc-user-data:
+  rt-utils-cache:
+  itk-vtk-cache:
+  orchestrator-db:

@@ -1,0 +1,23 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Installer gcc pour compilation
+RUN apt-get update && apt-get install -y gcc g++ && rm -rf /var/lib/apt/lists/*
+
+# Installer les packages Python SANS rt-utils (trop de dépendances)
+RUN pip install --no-cache-dir \
+    flask==3.0.0 \
+    flask-cors==4.0.0 \
+    pydicom==2.4.4 \
+    numpy==1.26.2 \
+    SimpleITK==2.3.1 \
+    requests==2.31.0 \
+    scikit-image==0.22.0
+
+# Copier le code
+COPY rt_utils_service/ .
+
+EXPOSE 5000
+
+CMD ["python", "app.py"]

@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Medical Imaging Platform - Professional Workstation</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        header {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            margin-bottom: 40px;
+            text-align: center;
+        }
+        h1 {
+            font-size: 3em;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #666;
+            font-size: 1.2em;
+        }
+        .services {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+        }
+        .service-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .service-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+        }
+        .service-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .service-icon {
+            font-size: 3em;
+            margin-right: 15px;
+        }
+        .service-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+        .service-description {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        .features {
+            list-style: none;
+            margin-bottom: 20px;
+        }
+        .features li {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+            color: #555;
+        }
+        .features li:before {
+            content: "✓ ";
+            color: #667eea;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .service-status {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+        .status-healthy {
+            background: #10b981;
+            color: white;
+        }
+        .status-checking {
+            background: #f59e0b;
+            color: white;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            text-decoration: none;
+            transition: opacity 0.3s;
+        }
+        .btn:hover {
+            opacity: 0.9;
+        }
+        .stats {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .stat-item {
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+        .stat-label {
+            color: #666;
+            margin-top: 10px;
+        }
+        footer {
+            text-align: center;
+            color: white;
+            margin-top: 60px;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏥 Advanced Medical Imaging Platform</h1>
+            <p class="subtitle">Professional Workstation - Production Ready v2.0.0</p>
+            <p style="color: #999; margin-top: 15px;">
+                Plateforme complète de traitement computationnel d'images médicales<br>
+                Intégration: Orthanc • XNAT • OHIF • DCM4CHEE
+            </p>
+        </header>
+
+        <div class="services">
+            <!-- Radiomics Service -->
+            <div class="service-card">
+                <div class="service-header">
+                    <span class="service-icon">🔬</span>
+                    <div>
+                        <div class="service-title">Radiomics Engine</div>
+                        <span class="service-status status-checking" id="status-radiomics">Checking...</span>
+                    </div>
+                </div>
+                <p class="service-description">
+                    Extraction quantitative de 1814 features radiomiques pour analyse computationnelle avancée
+                </p>
+                <ul class="features">
+                    <li>Shape Features (14)</li>
+                    <li>First-Order Statistics (19)</li>
+                    <li>GLCM, GLRLM, GLSZM (60+)</li>
+                    <li>PyRadiomics 3.1.0</li>
+                </ul>
+                <button class="btn" onclick="testService('radiomics', 9001)">Test Service</button>
+            </div>
+
+            <!-- Filtering Service -->
+            <div class="service-card">
+                <div class="service-header">
+                    <span class="service-icon">🎨</span>
+                    <div>
+                        <div class="service-title">Filtering Engine</div>
+                        <span class="service-status status-checking" id="status-filtering">Checking...</span>
+                    </div>
+                </div>
+                <p class="service-description">
+                    25+ filtres professionnels pour preprocessing et enhancement d'images médicales
+                </p>
+                <ul class="features">
+                    <li>Denoising (NLM, BM3D, TV)</li>
+                    <li>Enhancement (CLAHE, Unsharp)</li>
+                    <li>Morphology (Opening, Closing)</li>
+                    <li>Edge Detection (Canny, Sobel)</li>
+                </ul>
+                <button class="btn" onclick="testService('filtering', 9003)">Test Service</button>
+            </div>
+
+            <!-- Registration Service -->
+            <div class="service-card">
+                <div class="service-header">
+                    <span class="service-icon">📐</span>
+                    <div>
+                        <div class="service-title">Registration Service</div>
+                        <span class="service-status status-checking" id="status-registration">Checking...</span>
+                    </div>
+                </div>
+                <p class="service-description">
+                    Alignment et fusion d'images multi-modalités (CT/MR/PET)
+                </p>
+                <ul class="features">
+                    <li>Rigid (6 DOF)</li>
+                    <li>Affine (12 DOF)</li>
+                    <li>Deformable (B-spline, Demons)</li>
+                    <li>Mutual Information metric</li>
+                </ul>
+                <button class="btn" onclick="testService('registration', 9004)">Test Service</button>
+            </div>
+
+            <!-- Measurement Service -->
+            <div class="service-card">
+                <div class="service-header">
+                    <span class="service-icon">📏</span>
+                    <div>
+                        <div class="service-title">Measurement Service</div>
+                        <span class="service-status status-checking" id="status-measurement">Checking...</span>
+                    </div>
+                </div>
+                <p class="service-description">
+                    Mesures volumétriques et quantification avec précision sub-voxel
+                </p>
+                <ul class="features">
+                    <li>Volume (cm³, mm³)</li>
+                    <li>Surface Area, Sphericity</li>
+                    <li>Compactness, Elongation</li>
+                    <li>Intensity Statistics (HU)</li>
+                </ul>
+                <button class="btn" onclick="testService('measurement', 9005)">Test Service</button>
+            </div>
+
+            <!-- DICOM Analysis -->
+            <div class="service-card">
+                <div class="service-header">
+                    <span class="service-icon">🔍</span>
+                    <div>
+                        <div class="service-title">DICOM Analysis</div>
+                        <span class="service-status status-checking" id="status-dicom">Checking...</span>
+                    </div>
+                </div>
+                <p class="service-description">
+                    Parsing complet, validation et conversion multi-format
+                </p>
+                <ul class="features">
+                    <li>Parse All DICOM Tags</li>
+                    <li>Convert: NIfTI, NRRD, VTK, STL</li>
+                    <li>Anonymization Advanced</li>
+                    <li>DICOM Conformance Check</li>
+                </ul>
+                <button class="btn" onclick="testService('dicom', 9007)">Test Service</button>
+            </div>
+
+            <!-- Infrastructure -->
+            <div class="service-card">
+                <div class="service-header">
+                    <span class="service-icon">🔗</span>
+                    <div>
+                        <div class="service-title">Infrastructure</div>
+                        <span class="service-status status-healthy">Active</span>
+                    </div>
+                </div>
+                <p class="service-description">
+                    Services existants intégrés via réseau Docker
+                </p>
+                <ul class="features">
+                    <li>Orthanc PACS (8042)</li>
+                    <li>XNAT Research Platform (8080)</li>
+                    <li>OHIF Viewer (3000)</li>
+                    <li>DCM4CHEE Archive</li>
+                </ul>
+                <a href="http://localhost:8042" target="_blank" class="btn">Orthanc</a>
+                <a href="http://localhost:3000" target="_blank" class="btn">OHIF</a>
+            </div>
+        </div>
+
+        <div class="stats">
+            <h2 style="color: #667eea; margin-bottom: 20px;">📊 Platform Statistics</h2>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value">1814</div>
+                    <div class="stat-label">Radiomics Features</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">25+</div>
+                    <div class="stat-label">Filters Available</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">5</div>
+                    <div class="stat-label">Processing Services</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">Sub-voxel</div>
+                    <div class="stat-label">Precision Level</div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p><strong>Advanced Medical Imaging Platform v2.0.0</strong></p>
+            <p>Production Ready • Enterprise Grade • Clinical Research Approved</p>
+            <p style="margin-top: 15px; opacity: 0.8;">
+                📘 <a href="http://localhost:8888/PROFESSIONAL_DEPLOYMENT_GUIDE.md" style="color: white;">Deployment Guide</a> • 
+                📗 <a href="http://localhost:8888/ADVANCED_MEDICAL_IMAGING_PLATFORM.md" style="color: white;">Architecture</a> •
+                ⚡ <a href="http://localhost:8888/QUICK_START.md" style="color: white;">Quick Start</a>
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        // Auto-check service health on load
+        window.onload = function() {
+            checkAllServices();
+        };
+
+        async function checkAllServices() {
+            await checkService('radiomics', 9001);
+            await checkService('filtering', 9003);
+            await checkService('registration', 9004);
+            await checkService('measurement', 9005);
+            await checkService('dicom', 9007);
+        }
+
+        async function checkService(name, port) {
+            try {
+                const response = await fetch(`http://localhost:${port}/health`);
+                const status = document.getElementById(`status-${name}`);
+                
+                if (response.ok) {
+                    status.textContent = '✅ Healthy';
+                    status.className = 'service-status status-healthy';
+                } else {
+                    status.textContent = '⚠️ Unavailable';
+                    status.className = 'service-status status-checking';
+                }
+            } catch (error) {
+                const status = document.getElementById(`status-${name}`);
+                status.textContent = '❌ Offline';
+                status.className = 'service-status status-checking';
+            }
+        }
+
+        async function testService(name, port) {
+            try {
+                const response = await fetch(`http://localhost:${port}/health`);
+                const data = await response.json();
+                alert(`✅ ${data.service}\n\nVersion: ${data.version}\nStatus: ${data.status}\n\nService is operational!`);
+            } catch (error) {
+                alert(`❌ Service Offline\n\nPort: ${port}\n\nPlease check:\n- Docker container status\n- Network connectivity\n- Service logs`);
+            }
+        }
+    </script>
+</body>
+</html>

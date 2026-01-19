@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RT-STRUCT → DICOM-SEG Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .subtitle {
+            text-align: center;
+            font-size: 1.2em;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+        .workflow-diagram {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .workflow-step {
+            display: inline-block;
+            margin: 10px;
+            padding: 20px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+            min-width: 200px;
+        }
+        .arrow {
+            display: inline-block;
+            font-size: 2em;
+            margin: 0 10px;
+        }
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .service-card {
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .service-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .service-title {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+            color: #ffd700;
+        }
+        .service-url {
+            background: rgba(0,0,0,0.3);
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-family: monospace;
+        }
+        .service-url a {
+            color: #4fc3f7;
+            text-decoration: none;
+        }
+        .service-url a:hover {
+            text-decoration: underline;
+        }
+        .features {
+            list-style: none;
+            margin-top: 15px;
+        }
+        .features li {
+            padding: 5px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+        .features li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #4caf50;
+            font-weight: bold;
+        }
+        .api-section {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 20px;
+        }
+        .code-block {
+            background: rgba(0,0,0,0.4);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+        .endpoint {
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(255,255,255,0.05);
+            border-left: 4px solid #4fc3f7;
+            border-radius: 5px;
+        }
+        .method {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .post { background: #4caf50; }
+        .get { background: #2196f3; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 RT-STRUCT → DICOM-SEG Platform</h1>
+        <p class="subtitle">Voxelisation automatique • Édition manuelle • IA-ready</p>
+
+        <!-- Workflow Diagram -->
+        <div class="workflow-diagram">
+            <h2 style="margin-bottom: 20px;">📊 Workflow Complet</h2>
+            <div style="display: flex; justify-content: center; align-items: center; flex-wrap: wrap;">
+                <div class="workflow-step">
+                    <div style="font-size: 2em;">📥</div>
+                    <strong>Orthanc Admin</strong><br>
+                    CT + RT-STRUCT
+                </div>
+                <span class="arrow">→</span>
+                <div class="workflow-step">
+                    <div style="font-size: 2em;">🐍</div>
+                    <strong>RT-Utils</strong><br>
+                    Voxelisation
+                </div>
+                <span class="arrow">→</span>
+                <div class="workflow-step">
+                    <div style="font-size: 2em;">🧮</div>
+                    <strong>ITK/VTK</strong><br>
+                    Post-processing
+                </div>
+                <span class="arrow">→</span>
+                <div class="workflow-step">
+                    <div style="font-size: 2em;">🧠</div>
+                    <strong>3D Slicer</strong><br>
+                    Validation
+                </div>
+                <span class="arrow">→</span>
+                <div class="workflow-step">
+                    <div style="font-size: 2em;">💾</div>
+                    <strong>DICOM-SEG</strong><br>
+                    Orthanc
+                </div>
+            </div>
+        </div>
+
+        <!-- Services Grid -->
+        <div class="services-grid">
+            <div class="service-card">
+                <div class="service-title">🐍 RT-Utils Service</div>
+                <div class="service-url">
+                    <a href="http://localhost:5001/health" target="_blank">http://localhost:5001/health</a>
+                </div>
+                <ul class="features">
+                    <li>RT-STRUCT → DICOM-SEG</li>
+                    <li>Voxelisation automatique</li>
+                    <li>Multi-ROI support</li>
+                    <li>Auto-upload Orthanc</li>
+                    <li>Statistiques par slice</li>
+                </ul>
+            </div>
+
+            <div class="service-card">
+                <div class="service-title">🧮 ITK/VTK Service</div>
+                <div class="service-url">
+                    <a href="http://localhost:5002/health" target="_blank">http://localhost:5002/health</a>
+                </div>
+                <ul class="features">
+                    <li>Morphologie 3D avancée</li>
+                    <li>Interpolation sub-voxel</li>
+                    <li>Extraction de surfaces</li>
+                    <li>Mesures géométriques</li>
+                    <li>Features radiomiques</li>
+                </ul>
+            </div>
+
+            <div class="service-card">
+                <div class="service-title">🔗 Orchestrator</div>
+                <div class="service-url">
+                    <a href="http://localhost:5003/health" target="_blank">http://localhost:5003/health</a>
+                </div>
+                <ul class="features">
+                    <li>Détection automatique RT-STRUCT</li>
+                    <li>Workflow orchestration</li>
+                    <li>Webhooks Orthanc</li>
+                    <li>Déclenchement manuel</li>
+                    <li>Monitoring jobs</li>
+                </ul>
+            </div>
+
+            <div class="service-card">
+                <div class="service-title">🧠 3D Slicer (SlicerRT)</div>
+                <div class="service-url">
+                    <a href="http://localhost:3003" target="_blank">http://localhost:3003</a>
+                </div>
+                <ul class="features">
+                    <li>Édition manuelle précise</li>
+                    <li>Correction des masques</li>
+                    <li>Visualisation 3D/MPR</li>
+                    <li>RT-STRUCT ↔ SEG</li>
+                    <li>Export DICOM standard</li>
+                </ul>
+            </div>
+
+            <div class="service-card">
+                <div class="service-title">🏥 Orthanc Admin</div>
+                <div class="service-url">
+                    <a href="http://localhost:8042/ui/app/" target="_blank">http://localhost:8042/ui/app/</a>
+                </div>
+                <ul class="features">
+                    <li>PACS central</li>
+                    <li>OHIF intégré (/ohif/)</li>
+                    <li>DICOMweb API</li>
+                    <li>Webhooks configurés</li>
+                    <li>Stockage permanent</li>
+                </ul>
+            </div>
+
+            <div class="service-card">
+                <div class="service-title">👨‍🏫 Orthanc User</div>
+                <div class="service-url">
+                    <a href="http://localhost:9042/ui/app/" target="_blank">http://localhost:9042/ui/app/</a>
+                </div>
+                <ul class="features">
+                    <li>PACS étudiant</li>
+                    <li>OHIF intégré (/ohif/)</li>
+                    <li>Données anonymisées</li>
+                    <li>Read-only mode possible</li>
+                    <li>Formation médicale</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- API Documentation -->
+        <div class="api-section">
+            <h2 style="margin-bottom: 20px;">📚 API Documentation</h2>
+
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <strong>/api/convert-rtstruct-to-seg</strong>
+                <p style="margin: 10px 0;">Convertit RT-STRUCT en DICOM-SEG avec voxelisation</p>
+                <div class="code-block">
+curl -X POST http://localhost:5001/api/convert-rtstruct-to-seg \
+  -H "Content-Type: application/json" \
+  -d '{
+    "series_uid": "1.2.840.113619...",
+    "rtstruct_uid": "1.2.840.113619..."
+  }'
+                </div>
+            </div>
+
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <strong>/api/extract-voxels</strong>
+                <p style="margin: 10px 0;">Extrait voxels d'un ROI avec statistiques détaillées</p>
+                <div class="code-block">
+curl -X POST http://localhost:5001/api/extract-voxels \
+  -H "Content-Type: application/json" \
+  -d '{
+    "series_uid": "1.2.840...",
+    "rtstruct_uid": "1.2.840...",
+    "roi_name": "GTV"
+  }'
+                </div>
+            </div>
+
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <strong>/api/morphology</strong>
+                <p style="margin: 10px 0;">Opérations morphologiques (closing, opening, erosion, dilation)</p>
+                <div class="code-block">
+curl -X POST http://localhost:5002/api/morphology \
+  -H "Content-Type: application/json" \
+  -d '{
+    "mask": [[...]],
+    "operation": "closing",
+    "kernel_size": 3
+  }'
+                </div>
+            </div>
+
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <strong>/api/radiomics</strong>
+                <p style="margin: 10px 0;">Calcul features radiomiques (volume, surface, sphéricité, etc.)</p>
+                <div class="code-block">
+curl -X POST http://localhost:5002/api/radiomics \
+  -H "Content-Type: application/json" \
+  -d '{
+    "mask": [[...]],
+    "intensity": [[...]]
+  }'
+                </div>
+            </div>
+
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <strong>/api/trigger-workflow</strong>
+                <p style="margin: 10px 0;">Déclenche manuellement le workflow complet</p>
+                <div class="code-block">
+curl -X POST http://localhost:5003/api/trigger-workflow \
+  -H "Content-Type: application/json" \
+  -d '{
+    "series_uid": "1.2.840...",
+    "rtstruct_uid": "1.2.840..."
+  }'
+                </div>
+            </div>
+        </div>
+
+        <!-- Architecture Info -->
+        <div class="api-section" style="margin-top: 20px;">
+            <h2 style="margin-bottom: 20px;">🏗️ Architecture</h2>
+            <div class="code-block" style="white-space: pre; font-size: 0.9em;">
+┌─────────────────────────────────────────────────────────────┐
+│                      ORTHANC ADMIN                          │
+│         (PACS Central + Webhook Trigger)                    │
+└───────────────────┬─────────────────────────────────────────┘
+                    │ Webhook on StableStudy
+                    ▼
+┌─────────────────────────────────────────────────────────────┐
+│                  RT ORCHESTRATOR                            │
+│    • Détecte RT-STRUCT                                      │
+│    • Lance pipeline automatique                             │
+│    • Gère les jobs asynchrones                              │
+└──────┬──────────────────────┬───────────────────────────────┘
+       │                      │
+       ▼                      ▼
+┌─────────────┐      ┌──────────────────┐
+│  RT-UTILS   │      │    ITK/VTK       │
+│  SERVICE    │──────│    SERVICE       │
+│             │      │                  │
+│ • Voxelise  │      │ • Morphologie    │
+│ • Génère    │      │ • Interpolation  │
+│   DICOM-SEG │      │ • Radiomics      │
+└─────────────┘      └──────────────────┘
+       │                      │
+       └──────────┬───────────┘
+                  ▼
+         ┌────────────────┐
+         │  3D SLICER     │
+         │  (Validation)  │
+         └────────┬───────┘
+                  │
+                  ▼
+         ┌────────────────┐
+         │ DICOM-SEG      │
+         │ → Orthanc      │
+         └────────────────┘
+            </div>
+        </div>
+
+        <!-- Usage Guide -->
+        <div class="api-section" style="margin-top: 20px;">
+            <h2 style="margin-bottom: 20px;">📖 Guide d'utilisation</h2>
+            
+            <h3 style="color: #ffd700; margin: 15px 0;">1️⃣ Mode Automatique</h3>
+            <p style="margin-bottom: 10px;">Uploadez simplement un CT + RT-STRUCT vers Orthanc Admin. Le système détecte automatiquement et lance le workflow.</p>
+            
+            <h3 style="color: #ffd700; margin: 15px 0;">2️⃣ Mode Manuel</h3>
+            <p style="margin-bottom: 10px;">Utilisez l'API Orchestrator pour déclencher manuellement:</p>
+            <div class="code-block">
+# 1. Identifier les UIDs
+curl http://localhost:8042/studies
+
+# 2. Lancer workflow
+curl -X POST http://localhost:5003/api/trigger-workflow \
+  -H "Content-Type: application/json" \
+  -d '{"series_uid": "...","rtstruct_uid": "..."}'
+            </div>
+
+            <h3 style="color: #ffd700; margin: 15px 0;">3️⃣ Édition avec 3D Slicer</h3>
+            <p style="margin-bottom: 10px;">1. Ouvrez 3D Slicer<br>
+            2. Load DICOM from Orthanc (DICOMweb)<br>
+            3. Utilisez SlicerRT pour éditer<br>
+            4. Export DICOM-SEG<br>
+            5. Upload vers Orthanc</p>
+
+            <h3 style="color: #ffd700; margin: 15px 0;">4️⃣ Post-processing ITK/VTK</h3>
+            <p style="margin-bottom: 10px;">Appliquez des opérations morphologiques avancées avant validation finale.</p>
+        </div>
+    </div>
+</body>
+</html>

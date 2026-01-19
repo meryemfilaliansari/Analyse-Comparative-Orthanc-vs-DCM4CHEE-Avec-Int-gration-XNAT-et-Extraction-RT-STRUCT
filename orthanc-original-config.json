@@ -1,0 +1,27 @@
+{
+  "Name": "Orthanc-Storage-Admin",
+  "HttpPort": 8042,
+  "DicomPort": 4242,
+  "DicomAet": "ORTHANC_ADMIN",
+  "DicomServerEnabled": true,
+  "AuthenticationEnabled": false,
+  "RemoteAccessAllowed": true,
+  "DicomModalities": {
+    "DCM4CHEE": ["DCM4CHEE", "localhost", 11112],
+    "XNAT": ["XNAT", "xnat-web", 8104]
+  },
+  "OrthancPeers": {
+    "xnat": {
+      "Url": "http://xnat-web:8080/xapi/dicomweb"
+    }
+  },
+  "LuaScripts": ["/lua/orthanc-auto-transfer.lua"],
+  "MaximumStorageSize": 0,
+  "MaximumPatientCount": 0,
+  "StableAge": 10,
+  "HttpCompressionEnabled": true,
+  "HttpThreadsCount": 50,
+  "HttpCorsEnabled": true,
+  "SaveJobs": true,
+  "OverwriteInstances": false
+}

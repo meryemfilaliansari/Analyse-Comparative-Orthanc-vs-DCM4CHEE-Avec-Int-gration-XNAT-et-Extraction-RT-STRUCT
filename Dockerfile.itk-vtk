@@ -1,0 +1,20 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y gcc g++ && rm -rf /var/lib/apt/lists/*
+
+RUN pip install --no-cache-dir \
+    flask==3.0.0 \
+    flask-cors==4.0.0 \
+    SimpleITK==2.3.1 \
+    numpy==1.26.2 \
+    scikit-image==0.22.0 \
+    scipy==1.11.4 \
+    requests==2.31.0
+
+COPY itk_vtk_service/ .
+
+EXPOSE 5000
+
+CMD ["python", "app.py"]

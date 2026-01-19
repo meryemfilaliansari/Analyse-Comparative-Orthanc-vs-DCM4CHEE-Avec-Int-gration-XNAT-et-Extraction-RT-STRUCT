@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DICOM Upload - PACS</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            width: 100%;
+            padding: 40px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            color: #667eea;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #999;
+            font-size: 14px;
+        }
+        
+        .upload-section {
+            margin-bottom: 30px;
+        }
+        
+        .upload-box {
+            border: 3px dashed #667eea;
+            border-radius: 12px;
+            padding: 60px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f9f7ff;
+            position: relative;
+        }
+        
+        .upload-box:hover {
+            background: #f0ecff;
+            border-color: #764ba2;
+            transform: translateY(-2px);
+        }
+        
+        .upload-box.dragover {
+            background: #e8dff7;
+            border-color: #764ba2;
+            transform: scale(1.02);
+        }
+        
+        .upload-box input[type="file"] {
+            display: none;
+        }
+        
+        .upload-icon {
+            font-size: 64px;
+            margin-bottom: 15px;
+        }
+        
+        .upload-text {
+            color: #333;
+            font-size: 18px;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        .upload-hint {
+            color: #999;
+            font-size: 14px;
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            flex: 1;
+            min-width: 150px;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+        
+        .btn-outline {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+        
+        .btn-outline:hover {
+            background: #f9f7ff;
+        }
+        
+        .status-box {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 8px;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+        
+        .status-box.show {
+            display: block;
+        }
+        
+        .status-box.success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            color: #155724;
+        }
+        
+        .status-box.error {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+            color: #721c24;
+        }
+        
+        .status-box.info {
+            background: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            color: #0c5460;
+        }
+        
+        .status-box.loading {
+            background: #e2e3e5;
+            border-left: 4px solid #ffc107;
+            color: #383d41;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .file-list {
+            margin-top: 20px;
+        }
+        
+        .file-item {
+            background: #f5f5f5;
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .file-name {
+            color: #333;
+            font-weight: 500;
+        }
+        
+        .file-size {
+            color: #999;
+            font-size: 12px;
+        }
+        
+        .links-section {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 1px solid #eee;
+        }
+        
+        .links-section h3 {
+            color: #667eea;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+        
+        .links-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+        }
+        
+        .link-card {
+            background: #f9f7ff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .link-card:hover {
+            background: #f0ecff;
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.2);
+        }
+        
+        .link-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        
+        .link-title {
+            color: #333;
+            font-weight: 600;
+            font-size: 13px;
+            margin-bottom: 5px;
+        }
+        
+        .link-url {
+            color: #667eea;
+            font-size: 11px;
+            word-break: break-all;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: #e0e0e0;
+            border-radius: 2px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: #667eea;
+            width: 0%;
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏥 DICOM Upload Portal</h1>
+            <p>Upload your DICOM medical files to the PACS archive</p>
+        </div>
+        
+        <div class="upload-section">
+            <div class="upload-box" id="uploadBox">
+                <div class="upload-icon">📁</div>
+                <div class="upload-text">Drag & Drop DICOM Files Here</div>
+                <div class="upload-hint">or click to select files (.dcm, .DCM)</div>
+                <input type="file" id="fileInput" multiple accept=".dcm,.DCM" />
+            </div>
+        </div>
+        
+        <div class="file-list" id="fileList"></div>
+        
+        <div class="buttons">
+            <button class="btn-primary" onclick="selectFiles()">📁 Select Files</button>
+            <button class="btn-secondary" onclick="uploadFiles()">⬆️ Upload</button>
+            <button class="btn-outline" onclick="clearFiles()">🗑️ Clear</button>
+        </div>
+        
+        <div class="status-box" id="statusBox"></div>
+        
+        <div class="links-section">
+            <h3>🔗 Available PACS Interfaces</h3>
+            <div class="links-grid">
+                <div class="link-card" onclick="openLink('http://localhost:8081/dcm4chee-arc/ui2/')">
+                    <div class="link-icon">✨</div>
+                    <div class="link-title">DCM4CHEE UI</div>
+                    <div class="link-url">Port 8081</div>
+                </div>
+                <div class="link-card" onclick="openLink('http://localhost:8042')">
+                    <div class="link-icon">🔍</div>
+                    <div class="link-title">Orthanc</div>
+                    <div class="link-url">Port 8042</div>
+                </div>
+                <div class="link-card" onclick="openLink('http://localhost:8090')">
+                    <div class="link-icon">🏢</div>
+                    <div class="link-title">XNAT</div>
+                    <div class="link-url">Port 8090</div>
+                </div>
+                <div class="link-card" onclick="openLink('http://localhost:5173')">
+                    <div class="link-icon">📊</div>
+                    <div class="link-title">OHIF Viewer</div>
+                    <div class="link-url">Port 5173</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const uploadBox = document.getElementById('uploadBox');
+        const fileInput = document.getElementById('fileInput');
+        const fileList = document.getElementById('fileList');
+        const statusBox = document.getElementById('statusBox');
+        
+        let selectedFiles = [];
+        
+        // Drag and drop handling
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            uploadBox.addEventListener(eventName, preventDefaults, false);
+        });
+        
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        ['dragenter', 'dragover'].forEach(eventName => {
+            uploadBox.addEventListener(eventName, () => {
+                uploadBox.classList.add('dragover');
+            }, false);
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            uploadBox.addEventListener(eventName, () => {
+                uploadBox.classList.remove('dragover');
+            }, false);
+        });
+        
+        uploadBox.addEventListener('drop', handleDrop, false);
+        uploadBox.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', handleFileSelect);
+        
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFileSelect({ target: { files } });
+        }
+        
+        function handleFileSelect(e) {
+            selectedFiles = Array.from(e.target.files);
+            displayFiles();
+        }
+        
+        function selectFiles() {
+            fileInput.click();
+        }
+        
+        function displayFiles() {
+            if (selectedFiles.length === 0) {
+                fileList.innerHTML = '';
+                return;
+            }
+            
+            let html = '<div class="file-list">';
+            selectedFiles.forEach((file, index) => {
+                const sizeKB = (file.size / 1024).toFixed(2);
+                html += `
+                    <div class="file-item">
+                        <div>
+                            <div class="file-name">📄 ${file.name}</div>
+                            <div class="file-size">${sizeKB} KB</div>
+                        </div>
+                        <button class="btn-outline" style="min-width: 80px; padding: 8px 12px; font-size: 12px;" onclick="removeFile(${index})">Remove</button>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            fileList.innerHTML = html;
+        }
+        
+        function removeFile(index) {
+            selectedFiles.splice(index, 1);
+            displayFiles();
+        }
+        
+        function clearFiles() {
+            selectedFiles = [];
+            fileInput.value = '';
+            displayFiles();
+            statusBox.classList.remove('show');
+        }
+        
+        function uploadFiles() {
+            if (selectedFiles.length === 0) {
+                showStatus('❌ No files selected', 'error');
+                return;
+            }
+            
+            showStatus(`⏳ Uploading ${selectedFiles.length} file(s)...`, 'loading');
+            
+            const formData = new FormData();
+            selectedFiles.forEach(file => {
+                formData.append('file', file);
+            });
+            
+            // Upload to Orthanc
+            fetch('http://localhost:8042/api/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (response.ok || response.status === 200 || response.status === 201) {
+                    return response.json().catch(() => ({}));
+                }
+                throw new Error(`HTTP ${response.status}`);
+            })
+            .then(data => {
+                showStatus(`✅ Successfully uploaded ${selectedFiles.length} file(s)!\n\nNow available in all viewers.`, 'success');
+                clearFiles();
+            })
+            .catch(error => {
+                showStatus(`❌ Upload failed: ${error.message}\n\nMake sure Orthanc is running on port 8042.`, 'error');
+            });
+        }
+        
+        function showStatus(message, type) {
+            statusBox.textContent = message;
+            statusBox.className = `status-box show ${type}`;
+            
+            if (type === 'success') {
+                setTimeout(() => statusBox.classList.remove('show'), 5000);
+            }
+        }
+        
+        function openLink(url) {
+            window.open(url, '_blank');
+        }
+    </script>
+</body>
+</html>

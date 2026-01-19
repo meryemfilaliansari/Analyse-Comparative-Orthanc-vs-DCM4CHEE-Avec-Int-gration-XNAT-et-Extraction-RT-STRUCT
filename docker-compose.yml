@@ -1,0 +1,192 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database - Image officielle DCM4CHE
+  postgres:
+    image: dcm4che/postgres-dcm4chee:17.4-34
+    container_name: postgres
+    environment:
+      POSTGRES_DB: dcm4chee
+      POSTGRES_USER: dcm4chee
+      POSTGRES_PASSWORD: dcm4chee
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - pacs-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dcm4chee"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================
+  # LDAP avec schéma DICOM - PAS DE VARIABLES NÉCESSAIRES
+  # ============================================
+  ldap:
+    image: dcm4che/slapd-dcm4chee:2.6.8-34.1
+    container_name: openldap
+    ports:
+      - "389:389"
+    environment:
+      LDAP_ROOTPASS: secret
+      LDAP_CONFIGPASS: secret
+    volumes:
+      - ldap_data:/var/lib/openldap/openldap-data
+      - ldap_config:/etc/openldap/slapd.d
+    networks:
+      - pacs-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "ldapsearch -x -H ldap://localhost:389 -b dc=dcm4che,dc=org -s base || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  # DCM4CHEE Archive - Version 5.34.1 (version qui fonctionnait)
+  dcm4chee-arc:
+    image: dcm4che/dcm4chee-arc-psql:5.34.1
+    container_name: dcm4chee
+    depends_on:
+      postgres:
+        condition: service_healthy
+      ldap:
+        condition: service_healthy
+    environment:
+      # LDAP Configuration - VALEURS PAR DÉFAUT
+      LDAP_URL: ldap://openldap:389
+      LDAP_BASE_DN: dc=dcm4che,dc=org
+      LDAP_ROOTPASS: secret
+      
+      # PostgreSQL Configuration
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: dcm4chee
+      POSTGRES_USER: dcm4chee
+      POSTGRES_PASSWORD: dcm4chee
+      
+      # Archive Configuration - VARIABLES CORRECTES
+      ARCHIVE_DEVICE_NAME: dcm4chee-arc
+      AE_TITLE: DCM4CHEE
+      DICOM_HOST: dcm4chee
+      DICOM_PORT: 11112
+      
+      # WildFly Admin
+      WILDFLY_ADMIN_USER: admin
+      WILDFLY_ADMIN_PASSWORD: admin
+      
+      # Java Options
+      JAVA_OPTS: "-Xms512m -Xmx2g -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=512m"
+      
+      # Environment
+      TZ: Europe/Paris
+    ports:
+      - "8080:8080"   # HTTP UI and API
+      - "8443:8443"   # HTTPS
+      - "9990:9990"   # WildFly Management
+      - "11112:11112" # DICOM C-STORE SCP
+      - "2762:2762"   # HL7
+    volumes:
+      - dcm4chee_storage:/storage
+      - dcm4chee_wildfly:/opt/wildfly/standalone
+    networks:
+      - pacs-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/dcm4chee-arc/ui2/"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 180s
+
+  # ==========================================================================
+  # XNAT - Plateforme d'Anonymisation (Admin uniquement)
+  # ==========================================================================
+  
+  # XNAT Database
+  xnat-db:
+    image: postgres:16.9-alpine
+    container_name: xnat-postgres
+    environment:
+      POSTGRES_DB: xnat
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: xnat1234
+      # Variables for init script
+      XNAT_DATASOURCE_USERNAME: xnat
+      XNAT_DATASOURCE_PASSWORD: xnat1234
+    volumes:
+      - xnat_postgres_data:/var/lib/postgresql/data
+      - ./postgres-xnat:/docker-entrypoint-initdb.d
+    networks:
+      - pacs-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d xnat"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # XNAT Web Application - Build depuis source officielle
+  xnat:
+    build:
+      context: ./xnat
+      args:
+        XNAT_VERSION: ${XNAT_VERSION:-1.9.2.1}
+        XNAT_SMTP_ENABLED: ${XNAT_SMTP_ENABLED:-false}
+        XNAT_SMTP_HOSTNAME: ${XNAT_SMTP_HOSTNAME:-fake.fake}
+        XNAT_SMTP_PORT: ${XNAT_SMTP_PORT:-}
+        XNAT_SMTP_AUTH: ${XNAT_SMTP_AUTH:-}
+        XNAT_SMTP_USERNAME: ${XNAT_SMTP_USERNAME:-}
+        XNAT_SMTP_PASSWORD: ${XNAT_SMTP_PASSWORD:-}
+        XNAT_SMTP_START_TLS: ${XNAT_SMTP_START_TLS:-}
+        XNAT_DATASOURCE_DRIVER: org.postgresql.Driver
+        XNAT_DATASOURCE_URL: jdbc:postgresql://xnat-db:5432/xnat
+        XNAT_DATASOURCE_USERNAME: xnat
+        XNAT_DATASOURCE_PASSWORD: xnat1234
+        TOMCAT_XNAT_FOLDER: ROOT
+        XNAT_ROOT: /data/xnat
+        XNAT_HOME: /data/xnat/home
+        XNAT_EMAIL: admin@pacs.local
+    container_name: xnat-web
+    environment:
+      CATALINA_OPTS: "-Xms512m -Xmx2g -Dxnat.home=/data/xnat/home"
+      XNAT_HOME: /data/xnat/home
+    ports:
+      - "8090:8080"
+      - "8104:8104"  # XNAT DICOM Receiver
+    depends_on:
+      xnat-db:
+        condition: service_healthy
+    volumes:
+      - xnat_data_archive:/data/xnat/archive
+      - xnat_data_build:/data/xnat/build
+      - xnat_data_home:/data/xnat/home
+      - xnat_plugins:/data/xnat/home/plugins
+    networks:
+      - pacs-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 15
+      start_period: 180s
+
+volumes:
+  postgres_data:
+  ldap_data:
+  ldap_config:
+  dcm4chee_storage:
+  dcm4chee_wildfly:
+  xnat_postgres_data:
+  xnat_data_archive:
+  xnat_data_build:
+  xnat_data_home:
+  xnat_plugins:
+
+networks:
+  pacs-network:
+    driver: bridge

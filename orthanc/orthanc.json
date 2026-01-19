@@ -1,0 +1,53 @@
+{
+  "HttpPort": 8042,
+  "DicomPort": 4242,
+  "DicomServerEnabled": true,
+  "DicomAet": "ORTHANC",
+  "DicomCheckModalityWorklistHandler": true,
+  "AuthenticationEnabled": false,
+  "RemoteAccessAllowed": true,
+  "OrthancPeers": {
+    "xnat-web": {
+      "Url": "http://xnat-web:8080",
+      "Username": "admin",
+      "Password": "admin"
+    }
+  },
+  "DicomModalities": {
+    "DCM4CHEE": ["DCM4CHEE", "localhost", 11112],
+    "XNAT": ["XNAT", "xnat-web", 8080]
+  },
+  "StorageDirectory": "/var/lib/orthanc/storage",
+  "IndexDirectory": "/var/lib/orthanc/index",
+  "MaximumStorageSize": 1000000000,
+  "MaximumPatientCount": 1000,
+  "LuaScripts": [],
+  "RestApiWriteToFileSystemEnabled": true,
+  "CaseSensitiveUsernames": false,
+  "IngestTranscodingEnabled": true,
+  "MetricsEnabled": true,
+  "StringValueRepresentationMaximumLength": 4096,
+  "SaveJobs": true,
+  "DeleteRevisions": true,
+  "Ssl": false,
+  "HttpCompressionEnabled": true,
+  "HttpThreadsCount": 20,
+  "HttpRequestTimeout": 60,
+  "HttpServerKeepAliveTimeout": 5,
+  "SleepDurationAfterToolFailure": 5,
+  "PluginsEnabled": true,
+  "WebsocketEnabled": true,
+  "OverwriteInstances": false,
+  "PrintLoggingDetails": true,
+  "DefaultPrivateCreator": "Orthanc",
+  "LuaHttpsClientCertificateRequired": false,
+  "LuaHttpsClientCertificatePath": "",
+  "LuaHttpsClientCertificateKeyPath": "",
+  "LuaHttpsClientCertificateKeyPassword": "",
+  "UserMetadata": {},
+  "InternalCompressionUsingDcmtkEnabled": false,
+  "Dictionary": {},
+  "Plugins": [
+    "/usr/share/orthanc/plugins/libOrthancTransfers.so"
+  ]
+}

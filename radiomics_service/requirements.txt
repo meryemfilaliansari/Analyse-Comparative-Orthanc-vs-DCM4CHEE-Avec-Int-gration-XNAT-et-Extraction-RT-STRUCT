@@ -1,0 +1,18 @@
+# Install numpy FIRST (required by pyradiomics setup)
+numpy==1.24.3
+
+# Core dependencies
+Flask==3.0.0
+flask-cors==4.0.0
+requests==2.31.0
+SimpleITK==2.3.1
+pydicom==2.4.4
+scipy==1.11.4
+scikit-image==0.22.0
+pandas==2.1.4
+
+# PyRadiomics (requires numpy pre-installed)
+pyradiomics==3.0.1
+
+# WSGI server
+gunicorn==21.2.0

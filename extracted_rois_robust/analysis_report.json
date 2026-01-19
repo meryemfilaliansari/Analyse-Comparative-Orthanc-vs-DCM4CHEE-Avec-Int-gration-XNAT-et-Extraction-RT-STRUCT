@@ -1,0 +1,101 @@
+{
+  "Heart": {
+    "shape": [
+      512,
+      512,
+      50
+    ],
+    "total_voxels": 105000,
+    "volume_cm3": 105.0,
+    "volume_ml": 105.0,
+    "slices_active": 21,
+    "slice_range": [
+      15,
+      35
+    ],
+    "centroid": [
+      255.5,
+      199.21,
+      25.0
+    ],
+    "bbox": {
+      "row_min": 216,
+      "row_max": 295,
+      "col_min": 160,
+      "col_max": 240,
+      "slice_min": 15,
+      "slice_max": 35
+    },
+    "bbox_size": [
+      80,
+      81,
+      21
+    ]
+  },
+  "Lung_Left": {
+    "shape": [
+      512,
+      512,
+      50
+    ],
+    "total_voxels": 241273,
+    "volume_cm3": 241.27,
+    "volume_ml": 241.27,
+    "slices_active": 31,
+    "slice_range": [
+      10,
+      40
+    ],
+    "centroid": [
+      255.5,
+      349.71,
+      25.0
+    ],
+    "bbox": {
+      "row_min": 206,
+      "row_max": 305,
+      "col_min": 300,
+      "col_max": 400,
+      "slice_min": 10,
+      "slice_max": 40
+    },
+    "bbox_size": [
+      100,
+      101,
+      31
+    ]
+  },
+  "Tumor": {
+    "shape": [
+      512,
+      512,
+      50
+    ],
+    "total_voxels": 31537,
+    "volume_cm3": 31.54,
+    "volume_ml": 31.54,
+    "slices_active": 11,
+    "slice_range": [
+      20,
+      30
+    ],
+    "centroid": [
+      255.5,
+      255.56,
+      25.0
+    ],
+    "bbox": {
+      "row_min": 226,
+      "row_max": 285,
+      "col_min": 226,
+      "col_max": 286,
+      "slice_min": 20,
+      "slice_max": 30
+    },
+    "bbox_size": [
+      60,
+      61,
+      11
+    ]
+  }
+}

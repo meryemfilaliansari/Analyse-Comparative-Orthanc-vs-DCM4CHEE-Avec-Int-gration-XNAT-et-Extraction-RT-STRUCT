@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RT-Utils Service - Interface Web</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        .status {
+            display: inline-block;
+            padding: 5px 15px;
+            background: #10b981;
+            color: white;
+            border-radius: 20px;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .card h2 {
+            color: #764ba2;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            width: 100%;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .result {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+            border-left: 4px solid #667eea;
+        }
+        .result pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-size: 13px;
+            color: #333;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        .loading.active {
+            display: block;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+        .feature-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .feature-list li:last-child {
+            border-bottom: none;
+        }
+        .feature-list li::before {
+            content: "✓ ";
+            color: #10b981;
+            font-weight: bold;
+            margin-right: 5px;
+        }
+        .info-box {
+            background: #e8f4ff;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #3b82f6;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔬 RT-Utils Service</h1>
+            <p>Conversion RT-STRUCT → DICOM-SEG</p>
+            <span class="status" id="statusBadge">⏳ Vérification...</span>
+        </div>
+
+        <div class="info-box">
+            <strong>ℹ️ Port:</strong> 5001<br>
+            <strong>📡 API:</strong> http://localhost:5001
+        </div>
+
+        <div class="grid">
+            <!-- Extract ROI Info -->
+            <div class="card">
+                <h2>📊 Analyser RT-STRUCT</h2>
+                <div class="form-group">
+                    <label>RT-STRUCT UID</label>
+                    <input type="text" id="rtstructUid" placeholder="1.2.826.0.1.3680043.8.498...">
+                </div>
+                <button onclick="analyzeRTStruct()">Analyser Structure</button>
+                <div class="loading" id="loading1">
+                    <div class="spinner"></div>
+                    <p>Analyse en cours...</p>
+                </div>
+                <div class="result" id="result1"></div>
+            </div>
+
+            <!-- Get Orthanc Studies -->
+            <div class="card">
+                <h2>📁 Études dans Orthanc</h2>
+                <button onclick="getOrthancStudies()">Lister les Études</button>
+                <div class="loading" id="loading2">
+                    <div class="spinner"></div>
+                    <p>Chargement...</p>
+                </div>
+                <div class="result" id="result2"></div>
+            </div>
+
+            <!-- Service Info -->
+            <div class="card">
+                <h2>ℹ️ Informations Service</h2>
+                <ul class="feature-list" id="featureList">
+                    <li>Chargement...</li>
+                </ul>
+            </div>
+
+            <!-- Test Convert -->
+            <div class="card">
+                <h2>🔄 Convertir RT-STRUCT</h2>
+                <div class="form-group">
+                    <label>Series UID (CT)</label>
+                    <input type="text" id="seriesUid" placeholder="1.2.826.0.1.3680043.8.498...">
+                </div>
+                <div class="form-group">
+                    <label>RT-STRUCT UID</label>
+                    <input type="text" id="rtstructUid2" placeholder="1.2.826.0.1.3680043.8.498...">
+                </div>
+                <button onclick="convertRTStruct()">Lancer Conversion</button>
+                <div class="loading" id="loading3">
+                    <div class="spinner"></div>
+                    <p>Conversion en cours...</p>
+                </div>
+                <div class="result" id="result3"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5001';
+
+        // Check service health
+        async function checkHealth() {
+            try {
+                const response = await fetch(`${API_URL}/health`);
+                const data = await response.json();
+                
+                document.getElementById('statusBadge').textContent = '✅ ' + data.status.toUpperCase();
+                document.getElementById('statusBadge').style.background = '#10b981';
+                
+                const featureList = document.getElementById('featureList');
+                featureList.innerHTML = data.features.map(f => `<li>${f}</li>`).join('');
+                
+                if (data.note) {
+                    featureList.innerHTML += `<li style="color: #f59e0b;">${data.note}</li>`;
+                }
+            } catch (error) {
+                document.getElementById('statusBadge').textContent = '❌ OFFLINE';
+                document.getElementById('statusBadge').style.background = '#ef4444';
+                document.getElementById('featureList').innerHTML = '<li style="color: red;">Service non accessible</li>';
+            }
+        }
+
+        async function analyzeRTStruct() {
+            const uid = document.getElementById('rtstructUid').value;
+            if (!uid) {
+                alert('Veuillez entrer un RT-STRUCT UID');
+                return;
+            }
+
+            const loading = document.getElementById('loading1');
+            const result = document.getElementById('result1');
+            
+            loading.classList.add('active');
+            result.innerHTML = '';
+
+            try {
+                const response = await fetch(`${API_URL}/api/extract-voxels`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ rtstruct_uid: uid })
+                });
+                
+                const data = await response.json();
+                result.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            } catch (error) {
+                result.innerHTML = `<pre style="color: red;">Erreur: ${error.message}</pre>`;
+            } finally {
+                loading.classList.remove('active');
+            }
+        }
+
+        async function getOrthancStudies() {
+            const loading = document.getElementById('loading2');
+            const result = document.getElementById('result2');
+            
+            loading.classList.add('active');
+            result.innerHTML = '';
+
+            try {
+                const response = await fetch('http://localhost:8042/studies');
+                const studies = await response.json();
+                
+                let html = '<strong>Études disponibles:</strong><br><br>';
+                for (const studyId of studies.slice(0, 10)) {
+                    const studyInfo = await fetch(`http://localhost:8042/studies/${studyId}`).then(r => r.json());
+                    const patientName = studyInfo.PatientMainDicomTags?.PatientName || 'Unknown';
+                    const date = studyInfo.MainDicomTags?.StudyDate || 'N/A';
+                    html += `<div style="margin-bottom: 10px;">
+                        <strong>${patientName}</strong> - ${date}<br>
+                        <small style="color: #666;">Study ID: ${studyId}</small>
+                    </div>`;
+                }
+                
+                result.innerHTML = html;
+            } catch (error) {
+                result.innerHTML = `<pre style="color: red;">Erreur: ${error.message}</pre>`;
+            } finally {
+                loading.classList.remove('active');
+            }
+        }
+
+        async function convertRTStruct() {
+            const seriesUid = document.getElementById('seriesUid').value;
+            const rtstructUid = document.getElementById('rtstructUid2').value;
+            
+            if (!seriesUid || !rtstructUid) {
+                alert('Veuillez remplir les deux champs');
+                return;
+            }
+
+            const loading = document.getElementById('loading3');
+            const result = document.getElementById('result3');
+            
+            loading.classList.add('active');
+            result.innerHTML = '';
+
+            try {
+                const response = await fetch(`${API_URL}/api/convert-rtstruct-to-seg`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        series_uid: seriesUid,
+                        rtstruct_uid: rtstructUid
+                    })
+                });
+                
+                const data = await response.json();
+                result.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            } catch (error) {
+                result.innerHTML = `<pre style="color: red;">Erreur: ${error.message}</pre>`;
+            } finally {
+                loading.classList.remove('active');
+            }
+        }
+
+        // Check health on load
+        checkHealth();
+        setInterval(checkHealth, 30000); // Refresh every 30s
+    </script>
+</body>
+</html>

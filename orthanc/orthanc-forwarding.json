@@ -1,0 +1,27 @@
+{
+  "IncomingDicomModalities": [
+    {
+      "AET": "SENDER",
+      "Port": 11112
+    }
+  ],
+  "DicomModalitiesInDatabase": [
+    {
+      "AET": "DCM4CHEE",
+      "Host": "pacs-dcm4chee",
+      "Port": 11112
+    },
+    {
+      "AET": "XNAT",
+      "Host": "xnat-web",
+      "Port": 8008
+    }
+  ],
+  "AutoRouting": [
+    {
+      "Source": ".*",
+      "DestinationAET": "XNAT",
+      "Priority": 100
+    }
+  ]
+}

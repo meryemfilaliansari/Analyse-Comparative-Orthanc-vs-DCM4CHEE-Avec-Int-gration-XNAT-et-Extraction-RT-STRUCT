@@ -1,0 +1,43 @@
+{
+  "Name": "Orthanc User - Anonymized Data Only",
+  "StorageDirectory": "/var/lib/orthanc/db",
+  "IndexDirectory": "/var/lib/orthanc/db",
+  
+  "HttpPort": 8042,
+  "DicomPort": 4242,
+  "DicomAet": "ORTHANC_USER",
+  
+  "RemoteAccessAllowed": true,
+  "AuthenticationEnabled": false,
+  "SslEnabled": false,
+  
+  "DicomWeb": {
+    "Enable": true,
+    "Root": "/dicom-web/",
+    "EnableWado": true,
+    "WadoRoot": "/wado",
+    "Ssl": false,
+    "QidoCaseSensitive": false,
+    "StudiesMetadata": "Full",
+    "SeriesMetadata": "Full"
+  },
+  
+  "DicomModalities": {},
+  "OrthancPeers": {},
+  
+  "StableAge": 60,
+  "JobsHistorySize": 100,
+  "SaveJobs": true,
+  
+  "HttpTimeout": 60,
+  "HttpVerbose": false,
+  
+  "Plugins": [
+    "/usr/local/share/orthanc/plugins"
+  ],
+  
+  "PostgreSQL": {
+    "EnableIndex": false,
+    "EnableStorage": false
+  }
+}

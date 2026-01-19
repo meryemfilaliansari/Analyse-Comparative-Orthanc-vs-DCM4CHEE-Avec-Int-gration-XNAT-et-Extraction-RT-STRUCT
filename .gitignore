@@ -1,0 +1,75 @@
+# .gitignore
+
+# Données sensibles
+.env
+.env.local
+.env.*.local
+
+# Volumes Docker
+data/
+volumes/
+
+# Logs
+logs/
+*.log
+
+# Cache et temp
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+.cache/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Node modules
+node_modules/
+package-lock.json
+yarn.lock
+dist/
+
+# Python
+venv/
+.venv/
+env/
+.pytest_cache/
+
+# Backups
+*.backup
+*.sql
+*.sql.gz
+
+# Conteneurs et images
+.dockerignore
+docker-compose.override.yml
+
+# Credentials
+.htpasswd*
+*.pem
+*.key
+*.crt
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+pacs_local.db
+
+# Archives
+archive_backup/
+*.zip
+*.tar.gz
+
+# DICOM samples (large files)
+*.dcm
+!compliant_test.dcm
+!ultra_minimal.dcm
+Mrbrain.zip

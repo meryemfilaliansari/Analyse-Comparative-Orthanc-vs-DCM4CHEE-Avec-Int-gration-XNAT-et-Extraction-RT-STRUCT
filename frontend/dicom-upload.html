@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PACS DICOM Upload & Viewer</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 8px; margin-bottom: 30px; }
+        .header h1 { font-size: 32px; margin-bottom: 5px; }
+        .header p { font-size: 14px; opacity: 0.9; }
+        
+        .section { background: white; padding: 25px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .section h2 { color: #667eea; margin-bottom: 15px; font-size: 20px; border-bottom: 2px solid #667eea; padding-bottom: 10px; }
+        
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #f9f7ff;
+        }
+        .upload-area:hover { background: #f0ecff; border-color: #764ba2; }
+        .upload-area.dragover { background: #e8dff7; border-color: #764ba2; }
+        
+        .upload-area input[type="file"] { display: none; }
+        .upload-area p { color: #666; margin: 10px 0; }
+        .upload-area .icon { font-size: 48px; margin-bottom: 10px; }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        button:hover { background: #764ba2; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        
+        .status { margin-top: 20px; padding: 15px; background: #f0f0f0; border-radius: 6px; border-left: 4px solid #667eea; }
+        .status.success { background: #d4edda; border-left-color: #28a745; color: #155724; }
+        .status.error { background: #f8d7da; border-left-color: #dc3545; color: #721c24; }
+        .status.loading { background: #e2e3e5; border-left-color: #ffc107; color: #383d41; }
+        
+        .viewer-link { 
+            display: inline-block;
+            margin-top: 15px;
+            padding: 12px 24px;
+            background: #28a745;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            transition: all 0.3s;
+        }
+        .viewer-link:hover { background: #218838; }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .stat-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .stat-box .number { font-size: 32px; font-weight: bold; }
+        .stat-box .label { font-size: 12px; opacity: 0.8; margin-top: 5px; }
+        
+        .links { display: flex; gap: 15px; flex-wrap: wrap; }
+        .links a { color: #667eea; text-decoration: none; padding: 8px 16px; border: 1px solid #667eea; border-radius: 4px; transition: all 0.3s; }
+        .links a:hover { background: #667eea; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏥 PACS DICOM Upload & Viewer</h1>
+            <p>Upload medical DICOM images and browse them across multiple viewers</p>
+        </div>
+        
+        <div class="section">
+            <h2>📤 Upload DICOM Files</h2>
+            <div class="upload-area" id="uploadArea">
+                <div class="icon">📁</div>
+                <p>Drag & drop DICOM files here or click to select</p>
+                <p style="font-size: 12px; color: #999;">Supported: .dcm files</p>
+                <input type="file" id="fileInput" multiple accept=".dcm" />
+            </div>
+            <div class="button-group">
+                <button id="uploadBtn" onclick="document.getElementById('fileInput').click();">Select DICOM Files</button>
+                <button id="refreshBtn" onclick="refreshStats();">Refresh Stats</button>
+            </div>
+            <div id="status" class="status" style="display: none;"></div>
+        </div>
+        
+        <div class="section">
+            <h2>📊 Archive Statistics</h2>
+            <div class="stats">
+                <div class="stat-box">
+                    <div class="number" id="patientCount">-</div>
+                    <div class="label">Patients</div>
+                </div>
+                <div class="stat-box">
+                    <div class="number" id="studyCount">-</div>
+                    <div class="label">Studies</div>
+                </div>
+                <div class="stat-box">
+                    <div class="number" id="seriesCount">-</div>
+                    <div class="label">Series</div>
+                </div>
+                <div class="stat-box">
+                    <div class="number" id="instanceCount">-</div>
+                    <div class="label">Instances</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>🔗 Available Viewers & Interfaces</h2>
+            <div class="links">
+                <a href="/dcm4chee-arc/ui2/" target="_blank">✨ DCM4CHEE UI2</a>
+                <a href="http://localhost:8042/ui/app/" target="_blank">🔍 Orthanc Explorer</a>
+                <a href="http://localhost:5173/" target="_blank">📱 OHIF Viewer</a>
+                <a href="http://localhost:8090" target="_blank">🏢 XNAT</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const statusDiv = document.getElementById('status');
+
+        // Drag & drop
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, () => uploadArea.classList.add('dragover'), false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, () => uploadArea.classList.remove('dragover'), false);
+        });
+
+        uploadArea.addEventListener('drop', handleDrop, false);
+        fileInput.addEventListener('change', handleFiles, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            fileInput.files = files;
+            uploadFiles(files);
+        }
+
+        function handleFiles(e) {
+            uploadFiles(e.target.files);
+        }
+
+        function uploadFiles(files) {
+            if (files.length === 0) return;
+
+            const formData = new FormData();
+            for (let file of files) {
+                formData.append('files', file);
+            }
+
+            showStatus('Uploading ' + files.length + ' file(s)...', 'loading');
+
+            // Upload to Orthanc
+            fetch('http://localhost:8042/api/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                showStatus('✅ Successfully uploaded ' + files.length + ' DICOM file(s)!', 'success');
+                setTimeout(() => refreshStats(), 1000);
+            })
+            .catch(error => {
+                console.error('Upload error:', error);
+                showStatus('❌ Upload failed: ' + error.message, 'error');
+            });
+        }
+
+        function refreshStats() {
+            fetch('http://localhost:8042/api/statistics')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('patientCount').textContent = data.PatientCount;
+                    document.getElementById('studyCount').textContent = data.StudyCount;
+                    document.getElementById('seriesCount').textContent = data.SeriesCount;
+                    document.getElementById('instanceCount').textContent = data.InstanceCount;
+                    showStatus('✅ Statistics updated', 'success');
+                    setTimeout(() => statusDiv.style.display = 'none', 3000);
+                })
+                .catch(error => {
+                    console.error('Stats error:', error);
+                    showStatus('❌ Failed to load statistics', 'error');
+                });
+        }
+
+        function showStatus(message, type) {
+            statusDiv.textContent = message;
+            statusDiv.className = 'status ' + type;
+            statusDiv.style.display = 'block';
+        }
+
+        // Initial stats load
+        refreshStats();
+    </script>
+</body>
+</html>

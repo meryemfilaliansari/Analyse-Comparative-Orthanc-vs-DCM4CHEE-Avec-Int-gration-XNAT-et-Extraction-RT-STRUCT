@@ -1,0 +1,200 @@
+version: '3.8'
+
+# ============================================================================
+# ADVANCED MEDICAL IMAGING PLATFORM - Production Ready
+# Intégration avec: Orthanc, XNAT, OHIF, DCM4CHEE (infrastructure existante)
+# ============================================================================
+
+services:
+  # ==========================================================================
+  # RADIOMICS ENGINE - PyRadiomics (1814 features quantitatives)
+  # ==========================================================================
+  radiomics-server:
+    build:
+      context: ./radiomics_service
+      dockerfile: Dockerfile
+    container_name: radiomics-server
+    restart: unless-stopped
+    ports:
+      - "9001:5000"
+    environment:
+      ORTHANC_URL: "http://orthanc-admin:8042"
+      PYTHONUNBUFFERED: "1"
+    volumes:
+      - radiomics-cache:/cache
+      - ./radiomics_service:/app:ro
+    networks:
+      - pacs-network
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 8G
+
+  # ==========================================================================
+  # FILTERING ENGINE - 25+ filtres professionnels
+  # ==========================================================================
+  filtering-engine:
+    build:
+      context: ./filtering_service
+      dockerfile: Dockerfile
+    container_name: filtering-engine
+    restart: unless-stopped
+    ports:
+      - "9003:5000"
+    environment:
+      ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS: "8"
+      ORTHANC_URL: "http://orthanc-admin:8042"
+    volumes:
+      - filtering-cache:/cache
+      - ./filtering_service:/app:ro
+    networks:
+      - pacs-network
+    deploy:
+      resources:
+        limits:
+          cpus: '8'
+          memory: 16G
+
+  # ==========================================================================
+  # REGISTRATION SERVICE - Alignment multi-modalité
+  # ==========================================================================
+  registration-service:
+    build:
+      context: ./registration_service
+      dockerfile: Dockerfile
+    container_name: registration-service
+    restart: unless-stopped
+    ports:
+      - "9004:5000"
+    environment:
+      ELASTIX_NUM_THREADS: "8"
+      ORTHANC_URL: "http://orthanc-admin:8042"
+    volumes:
+      - registration-data:/data
+      - ./registration_service:/app:ro
+    networks:
+      - pacs-network
+    deploy:
+      resources:
+        limits:
+          cpus: '8'
+          memory: 16G
+
+  # ==========================================================================
+  # MEASUREMENT SERVICE - Mesures volumétriques de précision
+  # ==========================================================================
+  measurement-service:
+    build:
+      context: ./measurement_service
+      dockerfile: Dockerfile
+    container_name: measurement-service
+    restart: unless-stopped
+    ports:
+      - "9005:5000"
+    environment:
+      ORTHANC_URL: "http://orthanc-admin:8042"
+    volumes:
+      - ./measurement_service:/app:ro
+    networks:
+      - pacs-network
+
+  # ==========================================================================
+  # DICOM DEEP ANALYSIS - Parsing complet + conversion formats
+  # ==========================================================================
+  dicom-analysis-service:
+    build:
+      context: ./dicom_analysis_service
+      dockerfile: Dockerfile
+    container_name: dicom-analysis
+    restart: unless-stopped
+    ports:
+      - "9007:5000"
+    environment:
+      ORTHANC_URL: "http://orthanc-admin:8042"
+    volumes:
+      - ./dicom_analysis_service:/app:ro
+      - dicom-conversion-cache:/cache
+    networks:
+      - pacs-network
+
+  # ==========================================================================
+  # PROFESSIONAL WORKSTATION WEB - Interface utilisateur avancée
+  # ==========================================================================
+  professional-workstation:
+    build:
+      context: ./professional_workstation
+      dockerfile: Dockerfile
+    container_name: professional-workstation
+    restart: unless-stopped
+    ports:
+      - "8888:80"
+    environment:
+      # Existing infrastructure
+      ORTHANC_URL: "http://orthanc-admin:8042"
+      XNAT_URL: "http://xnat-web:8080"
+      OHIF_URL: "http://ohif-viewer:3000"
+      DCM4CHEE_URL: "http://dcm4chee:8080"
+      
+      # New processing services
+      RADIOMICS_URL: "http://radiomics-server:5000"
+      FILTERING_URL: "http://filtering-engine:5000"
+      REGISTRATION_URL: "http://registration-service:5000"
+      MEASUREMENT_URL: "http://measurement-service:5000"
+      DICOM_ANALYSIS_URL: "http://dicom-analysis:5000"
+    volumes:
+      - ./professional_workstation:/usr/share/nginx/html:ro
+    networks:
+      - pacs-network
+    depends_on:
+      - radiomics-server
+      - filtering-engine
+      - registration-service
+      - measurement-service
+      - dicom-analysis-service
+
+  # ==========================================================================
+  # PostgreSQL - Base de données Analytics
+  # ==========================================================================
+  postgres-analytics:
+    image: postgres:15-alpine
+    container_name: postgres-analytics
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: medical_imaging
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: SecurePassword123!
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres-analytics-data:/var/lib/postgresql/data
+      - ./postgres-init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - pacs-network
+
+  # ==========================================================================
+  # Redis Cache - Pour résultats de traitement
+  # ==========================================================================
+  redis-cache:
+    image: redis:7-alpine
+    container_name: redis-cache
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes --maxmemory 2gb --maxmemory-policy allkeys-lru
+    networks:
+      - pacs-network
+
+networks:
+  pacs-network:
+    external: true
+
+volumes:
+  radiomics-cache:
+  filtering-cache:
+  registration-data:
+  dicom-conversion-cache:
+  postgres-analytics-data:
+  redis-data:

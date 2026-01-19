@@ -1,0 +1,63 @@
+{
+  "application": "3D Slicer",
+  "version": "5.0+",
+  "instructions": [
+    "1. Ouvrir 3D Slicer",
+    "2. File \u2192 Add Data \u2192 S\u00e9lectionner le fichier CT (.nii.gz ou DICOM)",
+    "3. Pour chaque ROI:",
+    "   - File \u2192 Add Data \u2192 S\u00e9lectionner le fichier ROI (.nii.gz)",
+    "   - Dans 'Data' module: Drag & drop vers la branche du CT",
+    "   - Ou: Modules \u2192 Segmentations \u2192 Import \u2192 Importer comme segmentation",
+    "4. Utiliser 'Segmentations' module pour:",
+    "   - \u00c9diter les ROIs",
+    "   - Calculer volumes",
+    "   - Export DICOM-SEG"
+  ],
+  "rois": {
+    "Heart": {
+      "nifti_file": "Heart.nii.gz",
+      "volume_cm3": 105.0,
+      "color_rgb": [
+        255,
+        165,
+        0
+      ],
+      "shape": [
+        512,
+        512,
+        50
+      ],
+      "voxels": 105000
+    },
+    "Lung_Left": {
+      "nifti_file": "Lung_Left.nii.gz",
+      "volume_cm3": 241.27,
+      "color_rgb": [
+        0,
+        255,
+        255
+      ],
+      "shape": [
+        512,
+        512,
+        50
+      ],
+      "voxels": 241273
+    },
+    "Tumor": {
+      "nifti_file": "Tumor.nii.gz",
+      "volume_cm3": 31.54,
+      "color_rgb": [
+        255,
+        0,
+        0
+      ],
+      "shape": [
+        512,
+        512,
+        50
+      ],
+      "voxels": 31537
+    }
+  }
+}

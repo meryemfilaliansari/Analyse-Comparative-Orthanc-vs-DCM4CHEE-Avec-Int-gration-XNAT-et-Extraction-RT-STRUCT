@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DCM4CHEE PACS - Patient Search</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+            padding-top: 20px;
+        }
+        
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .search-section {
+            margin-bottom: 30px;
+        }
+        
+        .search-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+        
+        .search-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-group label {
+            color: #555;
+            font-size: 14px;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .form-group input {
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .search-buttons {
+            display: flex;
+            gap: 10px;
+            grid-column: 1 / -1;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+            flex: 1;
+        }
+        
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+            flex: 1;
+        }
+        
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+        
+        .patients-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #666;
+            padding: 40px;
+            font-size: 16px;
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            border-left: 4px solid #c33;
+        }
+        
+        .patients-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .patients-table thead {
+            background: #f5f5f5;
+        }
+        
+        .patients-table th {
+            padding: 12px;
+            text-align: left;
+            font-weight: 500;
+            color: #333;
+            border-bottom: 2px solid #ddd;
+            font-size: 14px;
+        }
+        
+        .patients-table td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+            color: #555;
+        }
+        
+        .patients-table tbody tr:hover {
+            background: #f9f9f9;
+            cursor: pointer;
+        }
+        
+        .patients-table tbody tr:hover {
+            background-color: #f0f4ff;
+        }
+        
+        .patient-link {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        
+        .patient-link:hover {
+            text-decoration: underline;
+        }
+        
+        .info {
+            background: #f0f4ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            color: #333;
+            font-size: 14px;
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .pagination button {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .pagination button:hover:not(:disabled) {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .pagination button.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 DCM4CHEE PACS</h1>
+            <p>Patient Search & DICOM Management System</p>
+        </div>
+        
+        <div class="card search-section">
+            <h2>🔍 Search Patients</h2>
+            <div class="search-form">
+                <div class="form-group">
+                    <label for="patientId">Patient ID</label>
+                    <input type="text" id="patientId" placeholder="e.g., D97258/11053">
+                </div>
+                <div class="form-group">
+                    <label for="patientName">Patient Name</label>
+                    <input type="text" id="patientName" placeholder="e.g., Rubo">
+                </div>
+                <div class="search-buttons">
+                    <button class="btn btn-primary" onclick="searchPatients()">🔎 Search</button>
+                    <button class="btn btn-secondary" onclick="clearSearch()">🔄 Clear</button>
+                </div>
+            </div>
+            <div class="info">
+                💡 <strong>Tip:</strong> Leave fields empty to see all patients. Use fuzzy matching for partial matches.
+            </div>
+        </div>
+        
+        <div class="card patients-section">
+            <h2>📋 Patients</h2>
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <p>Loading patients...</p>
+            </div>
+            <div id="error" class="error" style="display: none;"></div>
+            <div id="content" style="display: none;">
+                <table class="patients-table">
+                    <thead>
+                        <tr>
+                            <th>Patient ID</th>
+                            <th>Patient Name</th>
+                            <th>Birth Date</th>
+                            <th>Sex</th>
+                            <th>Studies</th>
+                            <th>Created</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="patientsBody">
+                    </tbody>
+                </table>
+                <div class="pagination">
+                    <button onclick="previousPage()" id="prevBtn" disabled>← Previous</button>
+                    <span id="pageInfo"></span>
+                    <button onclick="nextPage()" id="nextBtn">Next →</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const API_BASE = '/dcm4chee-arc/api/v1';
+        const PAGE_SIZE = 20;
+        let currentOffset = 0;
+        let totalPatients = 0;
+        
+        // Load patients on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            loadPatients();
+        });
+        
+        function loadPatients() {
+            const patientId = document.getElementById('patientId').value;
+            const patientName = document.getElementById('patientName').value;
+            
+            let url = `${API_BASE}/patients?offset=${currentOffset}&limit=${PAGE_SIZE}`;
+            
+            if (patientId.trim()) {
+                url += `&PatientID=${encodeURIComponent(patientId)}`;
+            }
+            if (patientName.trim()) {
+                url += `&PatientName=${encodeURIComponent(patientName)}`;
+            }
+            
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('content').style.display = 'none';
+            
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    return response.json();
+                })
+                .then(data => {
+                    document.getElementById('loading').style.display = 'none';
+                    totalPatients = data.total;
+                    displayPatients(data.results);
+                    updatePagination();
+                    document.getElementById('content').style.display = 'block';
+                })
+                .catch(error => {
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('error').style.display = 'block';
+                    document.getElementById('error').textContent = `❌ Error loading patients: ${error.message}`;
+                });
+        }
+        
+        function displayPatients(patients) {
+            const tbody = document.getElementById('patientsBody');
+            tbody.innerHTML = '';
+            
+            if (patients.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: #999;">No patients found</td></tr>';
+                return;
+            }
+            
+            patients.forEach(patient => {
+                const row = document.createElement('tr');
+                const birthDate = patient.patientBirthDate ? patient.patientBirthDate : 'N/A';
+                const sex = patient.patientSex ? patient.patientSex : 'N/A';
+                const createdDate = patient.createdTime ? new Date(patient.createdTime).toLocaleDateString() : 'N/A';
+                
+                row.innerHTML = `
+                    <td><strong>${patient.patientID}</strong></td>
+                    <td>${patient.patientName || 'N/A'}</td>
+                    <td>${birthDate}</td>
+                    <td>${sex}</td>
+                    <td><span style="background: #e3f2fd; padding: 4px 8px; border-radius: 4px;">${patient.numberOfStudies}</span></td>
+                    <td>${createdDate}</td>
+                    <td><a class="patient-link" href="ui2/" onclick="openPatientUI(event, ${patient.pk})">View →</a></td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        function updatePagination() {
+            const maxPage = Math.ceil(totalPatients / PAGE_SIZE);
+            const currentPage = Math.floor(currentOffset / PAGE_SIZE) + 1;
+            
+            document.getElementById('pageInfo').textContent = `Page ${currentPage} of ${maxPage} (${totalPatients} total)`;
+            document.getElementById('prevBtn').disabled = currentOffset === 0;
+            document.getElementById('nextBtn').disabled = (currentOffset + PAGE_SIZE) >= totalPatients;
+        }
+        
+        function nextPage() {
+            if ((currentOffset + PAGE_SIZE) < totalPatients) {
+                currentOffset += PAGE_SIZE;
+                loadPatients();
+            }
+        }
+        
+        function previousPage() {
+            if (currentOffset > 0) {
+                currentOffset -= PAGE_SIZE;
+                loadPatients();
+            }
+        }
+        
+        function searchPatients() {
+            currentOffset = 0;
+            loadPatients();
+        }
+        
+        function clearSearch() {
+            document.getElementById('patientId').value = '';
+            document.getElementById('patientName').value = '';
+            currentOffset = 0;
+            loadPatients();
+        }
+        
+        function openPatientUI(event, patientPk) {
+            event.preventDefault();
+            // Redirect to UI2 with patient PK parameter
+            window.location.href = `ui2/?patientPk=${patientPk}`;
+        }
+    </script>
+</body>
+</html>

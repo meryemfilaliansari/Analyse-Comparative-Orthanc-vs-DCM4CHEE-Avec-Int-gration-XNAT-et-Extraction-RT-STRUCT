@@ -1,0 +1,60 @@
+{
+  "DicomWeb": {
+    "Root": "/dicom-web/",
+    "EnableWado": true,
+    "Enable": true,
+    "StudiesMetadata": "Full",
+    "QidoRoot": "/dicom-web",
+    "SeriesMetadata": "Full",
+    "WadoRoot": "/dicom-web/wado"
+  },
+  "HttpCorsEnabled": true,
+  "OrthancPeers": {
+    "user": {
+      "Url": "http://orthanc-user:8042"
+    }
+  },
+  "DicomModalities": {
+    "XNAT": [
+      "XNAT",
+      "xnat-web",
+      8104
+    ],
+    "ORTHANC_USER": [
+      "ORTHANC_USER",
+      "orthanc-user",
+      4242
+    ],
+    "DCM4CHEE": [
+      "DCM4CHEE",
+      "localhost",
+      11112
+    ]
+  },
+  "DicomAet": "ORTHANC_ADMIN",
+  "AuthenticationEnabled": false,
+  "Name": "Orthanc-Admin",
+  "RemoteAccessAllowed": true,
+  "StorageDirectory": "/var/lib/orthanc/db",
+  "HttpsCACertificates": "/etc/ssl/certs/ca-certificates.crt",
+  "Plugins": [
+    "/run/orthanc/plugins",
+    "/usr/share/orthanc/plugins"
+  ],
+  "Gdcm": {
+    "Throttling": 4,
+    "RestrictTransferSyntaxes": [
+      "1.2.840.10008.1.2.4.90",
+      "1.2.840.10008.1.2.4.91",
+      "1.2.840.10008.1.2.4.92",
+      "1.2.840.10008.1.2.4.93"
+    ]
+  },
+  "OrthancExplorer2": {
+    "Enable": true,
+    "IsDefaultOrthancUI": true
+  },
+  "Transfers": {
+    "EnableRestApi": true
+  }
+}
