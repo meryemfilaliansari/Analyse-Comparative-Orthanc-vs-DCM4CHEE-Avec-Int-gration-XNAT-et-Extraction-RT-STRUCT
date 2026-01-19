@@ -647,7 +647,7 @@ PostgreSQL centralise:
 - Audit trails complets
 - Historique de tous les accès
 
-## 📋 Workflow Typique
+##  Workflow Typique
 
 ### Flux de Traitement d'une Étude
 
@@ -702,7 +702,7 @@ Résultats Unifiés
 Affichage Comparatif
 ```
 
-## 🔧 Configuration Avancée
+##  Configuration Avancée
 
 ### Variables d'Environnement
 
@@ -756,7 +756,7 @@ GET /docs                          # Swagger UI
 GET /openapi.json                  # OpenAPI spec
 ```
 
-## 📊 Métriques Suivies
+## Métriques Suivies
 
 ### Performance
 - Temps de réponse des requêtes
@@ -1200,11 +1200,7 @@ async def get_patients():
 - [OHIF Viewer](https://docs.ohif.org/) - Documentation OHIF
 - [FastAPI](https://fastapi.tiangolo.com/) - Docs FastAPI
 
-### Tutoriels Vidéo
 
-- [YouTube: DICOM Basics](https://www.youtube.com/watch?v=_123456) - Introduction DICOM
-- [YouTube: Orthanc Setup](https://www.youtube.com/watch?v=_234567) - Configuration Orthanc
-- [YouTube: RT-STRUCT Explained](https://www.youtube.com/watch?v=_345678) - RT-STRUCT radiothérapie
 
 ### Communautés
 
@@ -1212,17 +1208,6 @@ async def get_patients():
 - [Orthanc Users](https://groups.google.com/g/orthanc-users) - Communauté Orthanc
 - [XNAT Discussion](https://groups.google.com/g/xnat_discussion) - Forum XNAT
 
----
-
-## Remerciements
-
-- **DCM4CHE Team** - Pour DCM4CHEE archive professionnel
-- **Sébastien Jodogne** - Créateur d'Orthanc PACS
-- **XNAT Team (Washington University)** - Plateforme d'anonymisation
-- **OHIF Contributors** - Visualiseur DICOM open-source
-- **FastAPI (Sebastián Ramírez)** - Framework Python moderne
-- **Docker Inc.** - Containerization platform
-- **Communauté DICOM** - Standards et support
 
 ---
 
