@@ -38,14 +38,7 @@ Cette plateforme intègre **trois systèmes PACS majeurs** (DCM4CHEE, Orthanc, X
 3. **Outils Mesure & Annotation** : Interface collaborative avec OHIF pour analyse clinique
 4. **RT-STRUCT Extraction** : Pipeline automatisé pour segmentation radiothérapie (7.4s/étude)
 
-### Statistiques Clés
 
-- **742 patients** archivés dans les systèmes
-- **125 GB** de données DICOM
-- **95ms** temps de réponse API moyen
-- **99.7%** uptime des services
-- **87%** couverture de tests
-- **15,000** requêtes/jour traitées
 
 ---
 
@@ -221,7 +214,7 @@ docker run hello-world
 ### 1. Cloner le Projet
 
 ```bash
-git clone https://github.com/votre-username/pacs-multi-systemes.git
+git clone meryemfilaliansari/Orthanc-vs-DCM4CHEE-Avec-XNAT-et-Extraction-RT-STRUCT.git
 cd pacs-multi-systemes
 ```
 
@@ -1211,10 +1204,3 @@ async def get_patients():
 
 ---
 
-<div align="center">
-
-**Créé pour la radiologie moderne**
-
-**Plateforme PACS Multi-Systèmes** | [Documentation](http://localhost:8000/docs)
-
-</div>
